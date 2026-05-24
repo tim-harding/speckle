@@ -69,7 +69,7 @@ pub fn speckle(_args: TokenStream, input: TokenStream) -> TokenStream {
             TokenStream::from(quote! {
                 #(#attrs)*
                 #vis #sig {
-                    todo!(concat!("speckle_impl::", module_path!(), ":", file!(), ":", line!()));
+                    todo!()
                 }
             })
         }
