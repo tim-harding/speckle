@@ -1,13 +1,25 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    ItemFn,
+    ItemConst, ItemEnum, ItemFn, ItemForeignMod, ItemImpl, ItemMacro, ItemMod, ItemStatic,
+    ItemStruct, ItemTrait, ItemUnion,
     parse::{Parse, ParseStream, Result as ParseResult},
     parse_macro_input,
 };
 
+#[allow(dead_code)]
 enum Item {
+    Static(ItemStatic),
+    Const(ItemConst),
+    Struct(ItemStruct),
+    Enum(ItemEnum),
+    Union(ItemUnion),
     Fn(ItemFn),
+    Trait(ItemTrait),
+    Impl(ItemImpl),
+    Macro(ItemMacro),
+    ForeignMod(ItemForeignMod),
+    Mod(ItemMod),
 }
 
 impl Parse for Item {
@@ -25,6 +37,11 @@ impl Parse for Item {
 pub fn speckle(_args: TokenStream, input: TokenStream) -> TokenStream {
     let item = parse_macro_input!(input as Item);
     match item {
+        Item::Static(_) => todo!(),
+        Item::Const(_) => todo!(),
+        Item::Struct(_) => todo!(),
+        Item::Enum(_) => todo!(),
+        Item::Union(_) => todo!(),
         Item::Fn(item) => {
             let ItemFn {
                 attrs,
@@ -39,5 +56,10 @@ pub fn speckle(_args: TokenStream, input: TokenStream) -> TokenStream {
                 }
             })
         }
+        Item::Trait(_) => todo!(),
+        Item::Impl(_) => todo!(),
+        Item::Macro(_) => todo!(),
+        Item::ForeignMod(_) => todo!(),
+        Item::Mod(_) => todo!(),
     }
 }
