@@ -1,6 +1,3 @@
 [workspace]
 resolver = "3"
-members = ["cargo-speckle",
-    "speckle",
-    "speckle-macro", "speckle-spec",
-]
+members = ["cargo-speckle", "speckle", "speckle-macro"]
