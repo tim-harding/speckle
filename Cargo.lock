@@ -28,6 +28,7 @@ version = "0.1.0"
 name = "speckle-macro"
 version = "0.1.0"
 dependencies = [
+ "quote",
  "syn",
 ]
 
