@@ -14,7 +14,7 @@ pub fn speckle(_args: TokenStream, input: TokenStream) -> TokenStream {
     TokenStream::from(quote! {
         #(#attrs)*
         #vis #sig {
-            todo!()
+            compile_error!(concat!("speckle_impl::", module_path!(), ":", file!(), ":", line!()));
         }
     })
 }
