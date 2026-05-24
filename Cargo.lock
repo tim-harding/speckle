@@ -23,6 +23,9 @@ dependencies = [
 [[package]]
 name = "speckle"
 version = "0.1.0"
+dependencies = [
+ "speckle-macro",
+]
 
 [[package]]
 name = "speckle-macro"
