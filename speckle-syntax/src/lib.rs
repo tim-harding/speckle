@@ -96,7 +96,7 @@ impl Item {
         }
     }
 
-    pub fn attributes(&self) -> &[Attribute] {
+    fn attributes(&self) -> &[Attribute] {
         match self {
             Item::Static(item) => item.attrs.as_slice(),
             Item::Const(item) => item.attrs.as_slice(),
@@ -109,5 +109,11 @@ impl Item {
             Item::Macro(item) => item.attrs.as_slice(),
             Item::Mod(item) => item.attrs.as_slice(),
         }
+    }
+
+    pub fn speckle_attribute(&self) -> Option<&Attribute> {
+        self.attributes()
+            .iter()
+            .find(|attr| attr.path().is_ident("speckle"))
     }
 }
