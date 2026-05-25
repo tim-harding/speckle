@@ -1087,13 +1087,16 @@ dependencies = [
 name = "speckle-macro"
 version = "0.1.0"
 dependencies = [
- "quote",
- "syn",
+ "speckle-syntax",
 ]
 
 [[package]]
 name = "speckle-syntax"
 version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "syn",
+]
 
 [[package]]
 name = "stable_deref_trait"
