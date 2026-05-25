@@ -41,6 +41,16 @@ impl SpeckleDb {
         })
     }
 
+    pub async fn tx_begin(&self) -> Result<(), DbError> {
+        self.conn.execute("BEGIN", ()).await?;
+        Ok(())
+    }
+
+    pub async fn tx_commit(&self) -> Result<(), DbError> {
+        self.conn.execute("COMMIT", ()).await?;
+        Ok(())
+    }
+
     pub async fn migrate(&self) -> Result<(), DbError> {
         for statement in SCHEMA.split(';') {
             let statement = statement.trim();
