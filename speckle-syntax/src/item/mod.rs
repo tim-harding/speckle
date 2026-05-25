@@ -1,16 +1,29 @@
 use syn::{
     Attribute,
+    ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct, ItemTrait,
+    ItemUnion,
     parse::{Parse, ParseStream, Result as ParseResult},
     spanned::Spanned,
 };
 
 mod docs;
-mod item;
 mod span_content;
 mod speckle_attribute;
 
-pub use item::Item;
 pub use speckle_attribute::SyntaxError;
+
+pub enum Item {
+    Static(ItemStatic),
+    Const(ItemConst),
+    Struct(ItemStruct),
+    Enum(ItemEnum),
+    Union(ItemUnion),
+    Fn(ItemFn),
+    Trait(ItemTrait),
+    Impl(ItemImpl),
+    Macro(ItemMacro),
+    Mod(ItemMod),
+}
 
 impl Parse for Item {
     fn parse(input: ParseStream) -> ParseResult<Self> {
