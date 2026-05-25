@@ -3,12 +3,16 @@ CREATE TABLE IF NOT EXISTS speckle (
     identifier TEXT
 );
 
+CREATE INDEX IF NOT EXISTS idx_speckle_identifier ON speckle (identifier);
+
 CREATE TABLE IF NOT EXISTS specification (
     id INTEGER PRIMARY KEY,
     id_speckle INTEGER,
     version_number INTEGER,
     id_source_range INTEGER
 );
+
+CREATE INDEX IF NOT EXISTS idx_version_number ON specification (version_number);
 
 CREATE TABLE IF NOT EXISTS implementation (
     id INTEGER PRIMARY KEY,
