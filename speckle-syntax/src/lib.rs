@@ -9,6 +9,9 @@ use syn::{
 #[cfg(test)]
 mod item_docs_tests;
 
+#[cfg(test)]
+mod item_span_content_tests;
+
 pub struct SourceRange {
     pub file: String,
     pub byte_start: usize,
@@ -79,8 +82,6 @@ impl Item {
             Item::Enum(item) => item.variants.span(),
             Item::Union(item) => item.fields.span(),
             Item::Fn(item) => item.block.span(),
-            // Note: In general, these spans include the braces.
-            // The way to replace the content is using eg `brace_token.surround`
             Item::Trait(item) => item.brace_token.span.join(),
             Item::Impl(item) => item.brace_token.span.join(),
             Item::Macro(item) => item.mac.span(),

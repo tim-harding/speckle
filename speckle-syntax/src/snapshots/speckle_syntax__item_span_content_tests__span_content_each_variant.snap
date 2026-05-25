@@ -1,0 +1,44 @@
+---
+source: speckle-syntax/src/item_span_content_tests.rs
+expression: "AllVariantSpanContents\n{\n    r#static: snapshot_span_content(\"static FOO: i32 = 42;\"), r#const:\n    snapshot_span_content(\"const FOO: i32 = 42;\"), r#struct:\n    snapshot_span_content(\"struct Foo { x: i32 }\"), r#enum:\n    snapshot_span_content(\"enum Foo { A, B }\"), union:\n    snapshot_span_content(\"union Foo { f1: u32, f2: f32 }\"), r#fn:\n    snapshot_span_content(\"fn foo() { 1 }\"), r#trait:\n    snapshot_span_content(\"trait Foo { fn bar(); }\"), r#impl:\n    snapshot_span_content(\"impl Foo { fn bar() {} }\"), r#macro:\n    snapshot_span_content(\"macro_rules! foo { () => {} }\"), r#mod:\n    snapshot_span_content(\"mod foo {}\"),\n}"
+---
+static:
+  byte_start: 18
+  byte_end: 20
+  content: "42"
+const:
+  byte_start: 17
+  byte_end: 19
+  content: "42"
+struct:
+  byte_start: 11
+  byte_end: 21
+  content: "{ x: i32 }"
+enum:
+  byte_start: 11
+  byte_end: 15
+  content: "A, B"
+union:
+  byte_start: 10
+  byte_end: 30
+  content: "{ f1: u32, f2: f32 }"
+fn:
+  byte_start: 9
+  byte_end: 14
+  content: "{ 1 }"
+trait:
+  byte_start: 10
+  byte_end: 23
+  content: "{ fn bar(); }"
+impl:
+  byte_start: 9
+  byte_end: 24
+  content: "{ fn bar() {} }"
+macro:
+  byte_start: 0
+  byte_end: 29
+  content: "macro_rules! foo { () => {} }"
+mod:
+  byte_start: 0
+  byte_end: 3
+  content: mod
