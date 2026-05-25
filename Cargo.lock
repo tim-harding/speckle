@@ -32,6 +32,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "speckle-db"
+version = "0.1.0"
+
+[[package]]
 name = "speckle-macro"
 version = "0.1.0"
 dependencies = [

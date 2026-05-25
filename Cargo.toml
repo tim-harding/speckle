@@ -1,3 +1,3 @@
 [workspace]
 resolver = "3"
-members = ["cargo-speckle", "speckle", "speckle-macro", "speckle-syntax"]
+members = ["cargo-speckle", "speckle", "speckle-db", "speckle-macro", "speckle-syntax"]
