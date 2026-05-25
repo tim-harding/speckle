@@ -1,5 +1,5 @@
 ---
-source: speckle-syntax/src/item/speckle_attribute.rs
+source: speckle-syntax/src/speckle_attribute.rs
 expression: "snapshot_speckle_attribute(&format!(\"#[speckle(\\\"{EXAMPLE_ID}\\\")]\\nstruct Foo;\"))"
 ---
 byte_start: 0

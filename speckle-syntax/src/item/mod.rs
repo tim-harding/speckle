@@ -1,3 +1,4 @@
+use crate::speckle_attribute::{SpeckleAttribute, SpeckleAttributeError};
 use syn::{
     Attribute,
     ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct, ItemTrait,
@@ -8,9 +9,14 @@ use syn::{
 
 mod docs;
 mod span_content;
-mod speckle_attribute;
 
-pub use speckle_attribute::SyntaxError;
+#[derive(thiserror::Error, Debug, PartialEq, Eq)]
+pub enum SyntaxError {
+    #[error("missing #[speckle] attribute")]
+    MissingSpeckleAttribute,
+    #[error("invalid #[speckle] attribute: {0}")]
+    SpeckleAttribute(#[from] SpeckleAttributeError),
+}
 
 pub enum Item {
     Static(ItemStatic),
@@ -78,5 +84,14 @@ impl Item {
             Item::Macro(item) => item.attrs.as_slice(),
             Item::Mod(item) => item.attrs.as_slice(),
         }
+    }
+
+    pub fn speckle_attribute(&self) -> Result<SpeckleAttribute, SyntaxError> {
+        let attr = self
+            .attributes()
+            .iter()
+            .find(|attr| attr.path().is_ident("speckle"))
+            .ok_or(SyntaxError::MissingSpeckleAttribute)?;
+        Ok(SpeckleAttribute::parse(attr)?)
     }
 }
