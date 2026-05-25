@@ -2,9 +2,8 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+use speckle_syntax::SourceRange;
 use syn::{Attribute, Meta, spanned::Spanned, visit::Visit};
-
-use crate::SourceRange;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BareSpeckleAttribute {

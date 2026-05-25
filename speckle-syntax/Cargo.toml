@@ -6,11 +6,9 @@ edition = "2024"
 [dependencies]
 proc-macro2 = { version = "1.0.106", features = ["span-locations"] }
 syn = { version = "2.0.117", features = ["full", "visit"] }
-tempfile = "3.26.0"
 thiserror = "2.0.18"
 
 [dev-dependencies]
 indoc = "2.0.6"
 insta = { version = "1.47.2", features = ["yaml"] }
 serde = { version = "1.0.228", features = ["derive"] }
-tempfile = "3.26.0"

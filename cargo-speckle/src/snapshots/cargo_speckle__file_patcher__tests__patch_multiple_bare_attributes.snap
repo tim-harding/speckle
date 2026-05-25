@@ -1,5 +1,5 @@
 ---
-source: speckle-syntax/src/file_patcher.rs
+source: cargo-speckle/src/file_patcher.rs
 expression: "patch(\"#[speckle]\\nstruct Foo;\\n\\n#[speckle]\\nfn bar() {}\",\n&[EXAMPLE_ID, OTHER_ID])"
 ---
 #[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]

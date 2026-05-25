@@ -109,7 +109,11 @@ name = "cargo-speckle"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "insta",
  "speckle-syntax",
+ "syn",
+ "tempfile",
+ "thiserror 2.0.18",
  "uuid",
  "walkdir",
 ]
@@ -1274,7 +1278,6 @@ dependencies = [
  "proc-macro2",
  "serde",
  "syn",
- "tempfile",
  "thiserror 2.0.18",
 ]
 

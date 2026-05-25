@@ -2,7 +2,10 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use speckle_syntax::FilePatcher;
+
+mod file_patcher;
+
+use file_patcher::FilePatcher;
 use uuid::Uuid;
 use walkdir::{DirEntry, WalkDir};
 

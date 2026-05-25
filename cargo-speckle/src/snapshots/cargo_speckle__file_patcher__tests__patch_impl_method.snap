@@ -1,5 +1,5 @@
 ---
-source: speckle-syntax/src/file_patcher.rs
+source: cargo-speckle/src/file_patcher.rs
 expression: "patch(\"struct Foo;\\n\\n#[speckle]\\nimpl Foo {\\n    #[speckle]\\n    fn bar(&self) {}\\n}\",\n&[EXAMPLE_ID, OTHER_ID])"
 ---
 struct Foo;
