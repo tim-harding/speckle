@@ -103,12 +103,7 @@ impl Item {
             .attributes()
             .iter()
             .filter_map(|attr| match &attr.meta {
-                syn::Meta::Path(_) | syn::Meta::List(_) => None,
-                syn::Meta::NameValue(meta_name_value) => {
-                    if !meta_name_value.path.is_ident("doc") {
-                        return None;
-                    }
-
+                syn::Meta::NameValue(meta_name_value) if meta_name_value.path.is_ident("doc") => {
                     match &meta_name_value.value {
                         syn::Expr::Lit(syn::ExprLit {
                             lit: syn::Lit::Str(lit_str),
@@ -117,6 +112,7 @@ impl Item {
                         _ => None,
                     }
                 }
+                _ => None,
             })
             .collect();
 
