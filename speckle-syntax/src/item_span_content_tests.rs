@@ -73,3 +73,11 @@ fn test_span_content_macro() {
 fn test_span_content_mod() {
     insta::assert_yaml_snapshot!(snapshot_span_content("mod foo {}"));
 }
+
+#[test]
+fn test_rejects_file_module() {
+    match parse_str::<Item>("mod my_file;") {
+        Err(err) => assert!(err.to_string().contains("file modules")),
+        Ok(_) => panic!("expected file module to be rejected"),
+    }
+}

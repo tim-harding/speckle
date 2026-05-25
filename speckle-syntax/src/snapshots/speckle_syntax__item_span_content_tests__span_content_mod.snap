@@ -2,6 +2,6 @@
 source: speckle-syntax/src/item_span_content_tests.rs
 expression: "snapshot_span_content(\"mod foo {}\")"
 ---
-byte_start: 0
-byte_end: 3
-content: mod
+byte_start: 8
+byte_end: 10
+content: "{}"

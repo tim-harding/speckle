@@ -62,7 +62,15 @@ impl TryFrom<syn::Item> for Item {
             syn::Item::Trait(item) => Item::Trait(item),
             syn::Item::Impl(item) => Item::Impl(item),
             syn::Item::Macro(item) => Item::Macro(item),
-            syn::Item::Mod(item) => Item::Mod(item),
+            syn::Item::Mod(item) => {
+                if item.content.is_none() {
+                    return Err(syn::Error::new(
+                        item.span(),
+                        "file modules (`mod name;`) are not supported; use an inline module (`mod name { ... }`)",
+                    ));
+                }
+                Item::Mod(item)
+            }
             other => {
                 return Err(syn::Error::new(
                     other.span(),
@@ -84,8 +92,14 @@ impl Item {
             Item::Fn(item) => item.block.span(),
             Item::Trait(item) => item.brace_token.span.join(),
             Item::Impl(item) => item.brace_token.span.join(),
-            Item::Macro(item) => item.mac.span(),
-            Item::Mod(item) => item.mod_token.span(),
+            Item::Macro(item) => item.mac.delimiter.span().join(),
+            Item::Mod(item) => {
+                let (brace, _) = item
+                    .content
+                    .as_ref()
+                    .expect("file modules are rejected during parsing");
+                brace.span.join()
+            }
         }
     }
 
