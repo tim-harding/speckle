@@ -1,8 +1,27 @@
+use proc_macro2::Span;
 use syn::{
     ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct, ItemTrait,
     ItemUnion,
     parse::{Parse, ParseStream, Result as ParseResult},
+    spanned::Spanned,
 };
+
+pub struct SourceRange {
+    pub file: String,
+    pub byte_start: usize,
+    pub byte_end: usize,
+}
+
+impl From<Span> for SourceRange {
+    fn from(span: Span) -> Self {
+        let bytes = span.byte_range();
+        Self {
+            file: span.file(),
+            byte_start: bytes.start,
+            byte_end: bytes.end,
+        }
+    }
+}
 
 pub enum Item {
     Static(ItemStatic),
@@ -42,6 +61,23 @@ impl Parse for Item {
             Ok(Item::Mod(input.parse::<ItemMod>()?))
         } else {
             Err(lookahead.error())
+        }
+    }
+}
+
+impl Item {
+    pub fn content_span(&self) -> Span {
+        match self {
+            Item::Static(item) => item.expr.span(),
+            Item::Const(item) => item.expr.span(),
+            Item::Struct(item) => item.fields.span(),
+            Item::Enum(item) => item.variants.span(),
+            Item::Union(item) => item.fields.span(),
+            Item::Fn(item) => item.block.span(),
+            Item::Trait(item) => item.brace_token.span.join(),
+            Item::Impl(item) => item.brace_token.span.join(),
+            Item::Macro(item) => item.mac.span(),
+            Item::Mod(item) => item.mod_token.span(),
         }
     }
 }
