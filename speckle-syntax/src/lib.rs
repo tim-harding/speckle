@@ -98,6 +98,31 @@ impl Item {
         }
     }
 
+    pub fn specification(&self) -> Result<Vec<String>, SyntaxError> {
+        let docs = self
+            .attributes()
+            .iter()
+            .filter_map(|attr| match &attr.meta {
+                syn::Meta::Path(_) | syn::Meta::List(_) => None,
+                syn::Meta::NameValue(meta_name_value) => {
+                    if !meta_name_value.path.is_ident("doc") {
+                        return None;
+                    }
+
+                    match &meta_name_value.value {
+                        syn::Expr::Lit(syn::ExprLit {
+                            lit: syn::Lit::Str(lit_str),
+                            ..
+                        }) => Some(lit_str.value()),
+                        _ => None,
+                    }
+                }
+            })
+            .collect();
+
+        Ok(docs)
+    }
+
     fn attributes(&self) -> &[Attribute] {
         match self {
             Item::Static(item) => item.attrs.as_slice(),
@@ -125,4 +150,6 @@ impl Item {
 pub enum SyntaxError {
     #[error("Missing #[speckle] attribute")]
     MissingSpeckleAttribute,
+    #[error("Doc attributes must be a literal string")]
+    UnexpectedDocLiteralKind,
 }
