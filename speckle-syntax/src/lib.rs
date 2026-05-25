@@ -145,6 +145,15 @@ impl Item {
     }
 }
 
+pub struct SpeckleAttribute {
+    pub span: Span,
+    pub arguments: Vec<SpeckleAttributeArgument>,
+}
+
+pub enum SpeckleAttributeArgument {
+    Identifier(String),
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum SyntaxError {
     #[error("Missing #[speckle] attribute")]
