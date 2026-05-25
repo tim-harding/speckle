@@ -6,6 +6,9 @@ use syn::{
     spanned::Spanned,
 };
 
+#[cfg(test)]
+mod item_struct_tests;
+
 pub struct SourceRange {
     pub file: String,
     pub byte_start: usize,
@@ -38,30 +41,32 @@ pub enum Item {
 
 impl Parse for Item {
     fn parse(input: ParseStream) -> ParseResult<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(syn::token::Static) {
-            Ok(Item::Static(input.parse::<ItemStatic>()?))
-        } else if lookahead.peek(syn::token::Const) {
-            Ok(Item::Const(input.parse::<ItemConst>()?))
-        } else if lookahead.peek(syn::token::Struct) {
-            Ok(Item::Struct(input.parse::<ItemStruct>()?))
-        } else if lookahead.peek(syn::token::Enum) {
-            Ok(Item::Enum(input.parse::<ItemEnum>()?))
-        } else if lookahead.peek(syn::token::Union) {
-            Ok(Item::Union(input.parse::<ItemUnion>()?))
-        } else if lookahead.peek(syn::token::Fn) {
-            Ok(Item::Fn(input.parse::<ItemFn>()?))
-        } else if lookahead.peek(syn::token::Trait) {
-            Ok(Item::Trait(input.parse::<ItemTrait>()?))
-        } else if lookahead.peek(syn::token::Impl) {
-            Ok(Item::Impl(input.parse::<ItemImpl>()?))
-        } else if lookahead.peek(syn::token::Macro) {
-            Ok(Item::Macro(input.parse::<ItemMacro>()?))
-        } else if lookahead.peek(syn::token::Mod) {
-            Ok(Item::Mod(input.parse::<ItemMod>()?))
-        } else {
-            Err(lookahead.error())
-        }
+        input.parse::<syn::Item>()?.try_into()
+    }
+}
+
+impl TryFrom<syn::Item> for Item {
+    type Error = syn::Error;
+
+    fn try_from(item: syn::Item) -> Result<Self, Self::Error> {
+        Ok(match item {
+            syn::Item::Static(item) => Item::Static(item),
+            syn::Item::Const(item) => Item::Const(item),
+            syn::Item::Struct(item) => Item::Struct(item),
+            syn::Item::Enum(item) => Item::Enum(item),
+            syn::Item::Union(item) => Item::Union(item),
+            syn::Item::Fn(item) => Item::Fn(item),
+            syn::Item::Trait(item) => Item::Trait(item),
+            syn::Item::Impl(item) => Item::Impl(item),
+            syn::Item::Macro(item) => Item::Macro(item),
+            syn::Item::Mod(item) => Item::Mod(item),
+            other => {
+                return Err(syn::Error::new(
+                    other.span(),
+                    "expected one of: `static`, `const`, `struct`, `enum`, `union`, `fn`, `trait`, `impl`, `macro`, `mod`",
+                ));
+            }
+        })
     }
 }
 

@@ -10,3 +10,4 @@ thiserror = "2.0.18"
 
 [dev-dependencies]
 insta = { version = "1.47.2", features = ["yaml"] }
+serde = { version = "1.0.228", features = ["derive"] }

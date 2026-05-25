@@ -1,0 +1,8 @@
+---
+source: speckle-syntax/src/item_struct_tests.rs
+expression: "span_snapshot(source, item.span_full())"
+---
+source: "struct Foo(i32, String);"
+byte_start: 0
+byte_end: 24
+snippet: "struct Foo(i32, String);"
