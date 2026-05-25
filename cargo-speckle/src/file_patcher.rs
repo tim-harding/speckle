@@ -19,11 +19,17 @@ pub struct FilePatcher {
 #[derive(thiserror::Error, Debug)]
 pub enum FilePatcherError {
     #[error("failed to read {path}: {source}")]
-    Read { path: PathBuf, source: std::io::Error },
+    Read {
+        path: PathBuf,
+        source: std::io::Error,
+    },
     #[error("failed to parse {path}: {source}")]
     Parse { path: PathBuf, source: syn::Error },
     #[error("failed to save {path}: {source}")]
-    Save { path: PathBuf, source: std::io::Error },
+    Save {
+        path: PathBuf,
+        source: std::io::Error,
+    },
     #[error("parent directory not found for {0}")]
     ParentNotFound(PathBuf),
     #[error("uuid count ({uuid_count}) does not match bare attribute count ({attribute_count})")]
@@ -44,28 +50,7 @@ impl FilePatcher {
             path: path.clone(),
             source,
         })?;
-        Ok(Self {
-            path,
-            source,
-            file,
-        })
-    }
-
-    pub fn from_source(path: &Path, source: String) -> Result<Self, FilePatcherError> {
-        let path = path.to_path_buf();
-        let file = syn::parse_file(&source).map_err(|source| FilePatcherError::Parse {
-            path: path.clone(),
-            source,
-        })?;
-        Ok(Self {
-            path,
-            source,
-            file,
-        })
-    }
-
-    pub fn source(&self) -> &str {
-        &self.source
+        Ok(Self { path, source, file })
     }
 
     pub fn find_bare_speckle_attributes(&self) -> Vec<BareSpeckleAttribute> {
@@ -87,10 +72,7 @@ impl FilePatcher {
             .into_iter()
             .zip(uuids.iter())
             .map(|(bare_attribute, uuid)| {
-                (
-                    bare_attribute.range,
-                    format!(r#"#[speckle("{uuid}")]"#),
-                )
+                (bare_attribute.range, format!(r#"#[speckle("{uuid}")]"#))
             })
             .collect();
 
@@ -158,6 +140,21 @@ mod tests {
 
     const EXAMPLE_ID: &str = "cb4cb14c-8e40-495a-b17f-6227b622f4a8";
     const OTHER_ID: &str = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+
+    impl FilePatcher {
+        pub fn from_source(path: &Path, source: String) -> Result<Self, FilePatcherError> {
+            let path = path.to_path_buf();
+            let file = syn::parse_file(&source).map_err(|source| FilePatcherError::Parse {
+                path: path.clone(),
+                source,
+            })?;
+            Ok(Self { path, source, file })
+        }
+
+        pub fn source(&self) -> &str {
+            &self.source
+        }
+    }
 
     fn patcher_for(source: &str) -> FilePatcher {
         FilePatcher::from_source(Path::new("test.rs"), source.to_string()).unwrap()
