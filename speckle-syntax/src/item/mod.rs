@@ -1,5 +1,3 @@
-use crate::speckle_attribute::{SpeckleAttribute, SpeckleAttributeError};
-use proc_macro2::Span;
 use syn::{
     Attribute,
     parse::{Parse, ParseStream, Result as ParseResult},
@@ -8,8 +6,11 @@ use syn::{
 
 mod docs;
 mod item;
+mod span_content;
+mod speckle_attribute;
 
 pub use item::Item;
+pub use speckle_attribute::SyntaxError;
 
 impl Parse for Item {
     fn parse(input: ParseStream) -> ParseResult<Self> {
@@ -51,27 +52,6 @@ impl TryFrom<syn::Item> for Item {
 }
 
 impl Item {
-    pub fn span_content(&self) -> Span {
-        match self {
-            Item::Static(item) => item.expr.span(),
-            Item::Const(item) => item.expr.span(),
-            Item::Struct(item) => item.fields.span(),
-            Item::Enum(item) => item.variants.span(),
-            Item::Union(item) => item.fields.span(),
-            Item::Fn(item) => item.block.span(),
-            Item::Trait(item) => item.brace_token.span.join(),
-            Item::Impl(item) => item.brace_token.span.join(),
-            Item::Macro(item) => item.mac.delimiter.span().join(),
-            Item::Mod(item) => {
-                let (brace, _) = item
-                    .content
-                    .as_ref()
-                    .expect("file modules are rejected during parsing");
-                brace.span.join()
-            }
-        }
-    }
-
     fn attributes(&self) -> &[Attribute] {
         match self {
             Item::Static(item) => item.attrs.as_slice(),
@@ -86,21 +66,4 @@ impl Item {
             Item::Mod(item) => item.attrs.as_slice(),
         }
     }
-
-    pub fn speckle_attribute(&self) -> Result<SpeckleAttribute, SyntaxError> {
-        let attr = self
-            .attributes()
-            .iter()
-            .find(|attr| attr.path().is_ident("speckle"))
-            .ok_or(SyntaxError::MissingSpeckleAttribute)?;
-        Ok(SpeckleAttribute::parse(attr)?)
-    }
-}
-
-#[derive(thiserror::Error, Debug, PartialEq, Eq)]
-pub enum SyntaxError {
-    #[error("missing #[speckle] attribute")]
-    MissingSpeckleAttribute,
-    #[error("invalid #[speckle] attribute: {0}")]
-    SpeckleAttribute(#[from] SpeckleAttributeError),
 }
