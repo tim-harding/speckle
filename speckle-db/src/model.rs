@@ -1,6 +1,4 @@
-use limbo::{Row, Value};
-
-use crate::DbError;
+use rusqlite::{Result as SqliteResult, Row};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Speckle {
@@ -129,103 +127,62 @@ impl NewImplementationAccepted {
 }
 
 impl Speckle {
-    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
-            id: column_integer(row, 0, "speckle.id")?,
-            identifier: column_text(row, 1, "speckle.identifier")?,
+            id: row.get(0)?,
+            identifier: row.get(1)?,
         })
     }
 }
 
 impl SourceRange {
-    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
-            id: column_integer(row, 0, "source_range.id")?,
-            commit_hash: column_text(row, 1, "source_range.commit_hash")?,
-            file_path: column_text(row, 2, "source_range.file_path")?,
-            byte_start: column_integer(row, 3, "source_range.byte_start")?,
-            byte_end: column_integer(row, 4, "source_range.byte_end")?,
+            id: row.get(0)?,
+            commit_hash: row.get(1)?,
+            file_path: row.get(2)?,
+            byte_start: row.get(3)?,
+            byte_end: row.get(4)?,
         })
     }
 }
 
 impl Specification {
-    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
-            id: column_integer(row, 0, "specification.id")?,
-            id_speckle: column_integer(row, 1, "specification.id_speckle")?,
-            id_source_range: column_integer(row, 2, "specification.id_source_range")?,
+            id: row.get(0)?,
+            id_speckle: row.get(1)?,
+            id_source_range: row.get(2)?,
         })
     }
 }
 
 impl ImplementationJob {
-    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
-            id: column_integer(row, 0, "implementation_job.id")?,
-            id_specification: column_integer(row, 1, "implementation_job.id_specification")?,
-            id_external: column_optional_text(row, 2, "implementation_job.id_external")?,
+            id: row.get(0)?,
+            id_specification: row.get(1)?,
+            id_external: row.get(2)?,
         })
     }
 }
 
 impl Implementation {
-    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
-            id: column_integer(row, 0, "implementation.id")?,
-            id_specification: column_integer(row, 1, "implementation.id_specification")?,
-            id_source_range: column_integer(row, 2, "implementation.id_source_range")?,
-            source_tokens: column_blob(row, 3, "implementation.source_tokens")?,
+            id: row.get(0)?,
+            id_specification: row.get(1)?,
+            id_source_range: row.get(2)?,
+            source_tokens: row.get(3)?,
         })
     }
 }
 
 impl ImplementationAccepted {
-    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
-            id_speckle: column_integer(row, 0, "implementation_accepted.id_speckle")?,
-            id_implementation: column_integer(row, 1, "implementation_accepted.id_implementation")?,
+            id_speckle: row.get(0)?,
+            id_implementation: row.get(1)?,
         })
-    }
-}
-
-pub(crate) fn column_integer(row: &Row, index: usize, name: &str) -> Result<i64, DbError> {
-    match row.get_value(index)? {
-        Value::Integer(value) => Ok(value),
-        other => Err(DbError::UnexpectedValue(format!(
-            "expected integer for {name}, got {other:?}"
-        ))),
-    }
-}
-
-pub(crate) fn column_text(row: &Row, index: usize, name: &str) -> Result<String, DbError> {
-    match row.get_value(index)? {
-        Value::Text(value) => Ok(value),
-        other => Err(DbError::UnexpectedValue(format!(
-            "expected text for {name}, got {other:?}"
-        ))),
-    }
-}
-
-pub(crate) fn column_optional_text(
-    row: &Row,
-    index: usize,
-    name: &str,
-) -> Result<Option<String>, DbError> {
-    match row.get_value(index)? {
-        Value::Null => Ok(None),
-        Value::Text(value) => Ok(Some(value)),
-        other => Err(DbError::UnexpectedValue(format!(
-            "expected text or null for {name}, got {other:?}"
-        ))),
-    }
-}
-
-pub(crate) fn column_blob(row: &Row, index: usize, name: &str) -> Result<Vec<u8>, DbError> {
-    match row.get_value(index)? {
-        Value::Blob(value) => Ok(value),
-        other => Err(DbError::UnexpectedValue(format!(
-            "expected blob for {name}, got {other:?}"
-        ))),
     }
 }
