@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS implementation_accepted (
     -- The implementation that was accepted.
     id_implementation INTEGER,
     PRIMARY KEY (id_speckle, id_implementation)
-);
+) WITHOUT ROWID;
 
 -- A record of a source location in the repository history.
 CREATE TABLE IF NOT EXISTS source_range (
