@@ -99,7 +99,7 @@ impl Item {
     }
 
     pub fn specification(&self) -> Result<Vec<String>, SyntaxError> {
-        let docs = self
+        Ok(self
             .attributes()
             .iter()
             .filter_map(|attr| match &attr.meta {
@@ -113,9 +113,7 @@ impl Item {
                 }) if path.is_ident("doc") => Some(s.value()),
                 _ => None,
             })
-            .collect();
-
-        Ok(docs)
+            .collect())
     }
 
     fn attributes(&self) -> &[Attribute] {
