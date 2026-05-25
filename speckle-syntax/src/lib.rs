@@ -1,7 +1,7 @@
 use proc_macro2::Span;
 use syn::{
     Attribute, Expr, ExprLit, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod,
-    ItemStatic, ItemStruct, ItemTrait, ItemUnion, Lit, LitStr, MetaNameValue,
+    ItemStatic, ItemStruct, ItemTrait, ItemUnion, Lit, MetaNameValue,
     parse::{Parse, ParseStream, Result as ParseResult},
     spanned::Spanned,
 };
@@ -98,9 +98,8 @@ impl Item {
         }
     }
 
-    pub fn specification(&self) -> Result<Vec<String>, SyntaxError> {
-        Ok(self
-            .attributes()
+    pub fn specification(&self) -> Vec<String> {
+        self.attributes()
             .iter()
             .filter_map(|attr| match &attr.meta {
                 syn::Meta::NameValue(MetaNameValue {
@@ -113,7 +112,7 @@ impl Item {
                 }) if path.is_ident("doc") => Some(s.value()),
                 _ => None,
             })
-            .collect())
+            .collect()
     }
 
     fn attributes(&self) -> &[Attribute] {
@@ -143,6 +142,4 @@ impl Item {
 pub enum SyntaxError {
     #[error("Missing #[speckle] attribute")]
     MissingSpeckleAttribute,
-    #[error("Doc attributes must be a literal string")]
-    UnexpectedDocLiteralKind,
 }
