@@ -1,3 +1,6 @@
 .speckle
 debug
 target
+
+# insta inline snapshot review drafts
+*.pending-snap
