@@ -117,20 +117,25 @@ mod tests {
 
     #[test]
     fn test_speckle_attribute_bare() {
-        insta::assert_yaml_snapshot!(snapshot_speckle_attribute("#[speckle]\nstruct Foo;"));
+        insta::assert_yaml_snapshot!(snapshot_speckle_attribute(
+            r#"#[speckle]
+struct Foo;"#
+        ));
     }
 
     #[test]
     fn test_speckle_attribute_positional_string() {
         insta::assert_yaml_snapshot!(snapshot_speckle_attribute(&format!(
-            "#[speckle(\"{EXAMPLE_ID}\")]\nstruct Foo;"
+            r#"#[speckle("{EXAMPLE_ID}")]
+struct Foo;"#
         )));
     }
 
     #[test]
     fn test_speckle_attribute_named_id() {
         insta::assert_yaml_snapshot!(snapshot_speckle_attribute(&format!(
-            "#[speckle(id = \"{EXAMPLE_ID}\")]\nstruct Foo;"
+            r#"#[speckle(id = "{EXAMPLE_ID}")]
+struct Foo;"#
         )));
     }
 
@@ -145,7 +150,10 @@ mod tests {
 
     #[test]
     fn test_speckle_attribute_rejects_unknown_named_argument() {
-        let item = parse_item(&format!("#[speckle(uuid = \"{EXAMPLE_ID}\")]\nstruct Foo;"));
+        let item = parse_item(&format!(
+            r#"#[speckle(uuid = "{EXAMPLE_ID}")]
+struct Foo;"#
+        ));
         assert!(matches!(
             item.speckle_attribute(),
             Err(SyntaxError::SpeckleAttribute(

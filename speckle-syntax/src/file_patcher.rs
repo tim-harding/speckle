@@ -179,7 +179,10 @@ mod tests {
 
     #[test]
     fn test_find_bare_speckle_attribute_on_struct() {
-        let patcher = patcher_for("#[speckle]\nstruct Foo;");
+        let patcher = patcher_for(
+            r#"#[speckle]
+struct Foo;"#,
+        );
         let bare_attributes = patcher.find_bare_speckle_attributes();
         assert_eq!(bare_attributes.len(), 1);
         assert_eq!(bare_attributes[0].range.byte_start, 0);
@@ -188,13 +191,21 @@ mod tests {
 
     #[test]
     fn test_patch_single_bare_attribute() {
-        insta::assert_snapshot!(patch("#[speckle]\nstruct Foo;", &[EXAMPLE_ID]));
+        insta::assert_snapshot!(patch(
+            r#"#[speckle]
+struct Foo;"#,
+            &[EXAMPLE_ID]
+        ));
     }
 
     #[test]
     fn test_patch_multiple_bare_attributes() {
         insta::assert_snapshot!(patch(
-            "#[speckle]\nstruct Foo;\n\n#[speckle]\nfn bar() {}",
+            r#"#[speckle]
+struct Foo;
+
+#[speckle]
+fn bar() {}"#,
             &[EXAMPLE_ID, OTHER_ID]
         ));
     }
@@ -202,7 +213,9 @@ mod tests {
     #[test]
     fn test_patch_bare_attribute_with_other_attributes() {
         insta::assert_snapshot!(patch(
-            "#[derive(Debug)]\n#[speckle]\nstruct Foo { x: i32 }",
+            r#"#[derive(Debug)]
+#[speckle]
+struct Foo { x: i32 }"#,
             &[EXAMPLE_ID]
         ));
     }
@@ -210,7 +223,11 @@ mod tests {
     #[test]
     fn test_patch_nested_mod_fn() {
         insta::assert_snapshot!(patch(
-            "#[speckle]\nmod foo {\n    #[speckle]\n    fn bar() {}\n}",
+            r#"#[speckle]
+mod foo {
+    #[speckle]
+    fn bar() {}
+}"#,
             &[EXAMPLE_ID, OTHER_ID]
         ));
     }
@@ -218,7 +235,11 @@ mod tests {
     #[test]
     fn test_patch_trait_method() {
         insta::assert_snapshot!(patch(
-            "#[speckle]\ntrait Foo {\n    #[speckle]\n    fn bar(&self);\n}",
+            r#"#[speckle]
+trait Foo {
+    #[speckle]
+    fn bar(&self);
+}"#,
             &[EXAMPLE_ID, OTHER_ID]
         ));
     }
@@ -226,34 +247,55 @@ mod tests {
     #[test]
     fn test_patch_impl_method() {
         insta::assert_snapshot!(patch(
-            "struct Foo;\n\n#[speckle]\nimpl Foo {\n    #[speckle]\n    fn bar(&self) {}\n}",
+            r#"struct Foo;
+
+#[speckle]
+impl Foo {
+    #[speckle]
+    fn bar(&self) {}
+}"#,
             &[EXAMPLE_ID, OTHER_ID]
         ));
     }
 
     #[test]
     fn test_skip_existing_positional_id() {
-        let source = format!("#[speckle(\"{EXAMPLE_ID}\")]\nstruct Foo;");
+        let source = format!(
+            r#"#[speckle("{EXAMPLE_ID}")]
+struct Foo;"#
+        );
         let patcher = patcher_for(&source);
         assert!(patcher.find_bare_speckle_attributes().is_empty());
     }
 
     #[test]
     fn test_skip_existing_named_id() {
-        let source = format!("#[speckle(id = \"{EXAMPLE_ID}\")]\nstruct Foo;");
+        let source = format!(
+            r#"#[speckle(id = "{EXAMPLE_ID}")]
+struct Foo;"#
+        );
         let patcher = patcher_for(&source);
         assert!(patcher.find_bare_speckle_attributes().is_empty());
     }
 
     #[test]
     fn test_ignore_speckle_derive() {
-        let patcher = patcher_for("#[speckle_derive(Foo)]\nstruct Bar;");
+        let patcher = patcher_for(
+            r#"#[speckle_derive(Foo)]
+struct Bar;"#,
+        );
         assert!(patcher.find_bare_speckle_attributes().is_empty());
     }
 
     #[test]
     fn test_uuid_count_mismatch() {
-        let mut patcher = patcher_for("#[speckle]\nstruct Foo;\n\n#[speckle]\nfn bar() {}");
+        let mut patcher = patcher_for(
+            r#"#[speckle]
+struct Foo;
+
+#[speckle]
+fn bar() {}"#,
+        );
         let error = patcher
             .patch_bare_attributes(&[EXAMPLE_ID.to_string()])
             .unwrap_err();
@@ -270,7 +312,12 @@ mod tests {
     fn test_save_writes_file() {
         let temp_dir = tempfile::tempdir().unwrap();
         let path = temp_dir.path().join("lib.rs");
-        fs::write(&path, "#[speckle]\nstruct Foo;").unwrap();
+        fs::write(
+            &path,
+            r#"#[speckle]
+struct Foo;"#,
+        )
+        .unwrap();
 
         let mut patcher = FilePatcher::open(&path).unwrap();
         patcher
@@ -281,7 +328,10 @@ mod tests {
         let written = fs::read_to_string(path).unwrap();
         assert_eq!(
             written,
-            format!("#[speckle(\"{EXAMPLE_ID}\")]\nstruct Foo;")
+            format!(
+                r#"#[speckle("{EXAMPLE_ID}")]
+struct Foo;"#
+            )
         );
     }
 }
