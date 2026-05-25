@@ -1,8 +1,7 @@
 use crate::speckle_attribute::{SpeckleAttribute, SpeckleAttributeError};
 use syn::{
-    Attribute,
-    ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct, ItemTrait,
-    ItemUnion,
+    Attribute, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct,
+    ItemTrait, ItemUnion,
     parse::{Parse, ParseStream, Result as ParseResult},
     spanned::Spanned,
 };

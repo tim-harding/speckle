@@ -10,7 +10,10 @@ use uuid::Uuid;
 use walkdir::{DirEntry, WalkDir};
 
 #[derive(Parser)]
-#[command(name = "cargo-speckle", about = "Manage Speckle attributes in Rust source files")]
+#[command(
+    name = "cargo-speckle",
+    about = "Manage Speckle attributes in Rust source files"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -92,7 +95,10 @@ fn find_rust_sources(path: &Path) -> Vec<PathBuf> {
         .filter_map(Result::ok)
         .filter(|entry| {
             entry.file_type().is_file()
-                && entry.path().extension().is_some_and(|extension| extension == "rs")
+                && entry
+                    .path()
+                    .extension()
+                    .is_some_and(|extension| extension == "rs")
         })
         .map(DirEntry::into_path)
         .collect()

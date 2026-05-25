@@ -2,11 +2,11 @@ use std::path::Path;
 
 use limbo::{Connection, Database};
 
-use crate::model::{
-    Implementation, NewImplementation, NewSourceRange, NewSpeckle, NewSpecification, SourceRange,
-    Speckle, Specification, column_integer,
-};
 use crate::DbError;
+use crate::model::{
+    Implementation, NewImplementation, NewSourceRange, NewSpecification, NewSpeckle, SourceRange,
+    Specification, Speckle, column_integer,
+};
 
 pub const DEFAULT_PATH: &str = ".speckle/speckle.db";
 
@@ -20,10 +20,9 @@ pub struct SpeckleDb {
 impl SpeckleDb {
     pub async fn open(path: impl AsRef<Path>) -> Result<Self, DbError> {
         let path = path.as_ref();
-        let db = limbo::Builder::new_local(
-            path.to_str()
-                .ok_or_else(|| DbError::UnexpectedValue(format!("invalid path: {}", path.display())))?,
-        )
+        let db = limbo::Builder::new_local(path.to_str().ok_or_else(|| {
+            DbError::UnexpectedValue(format!("invalid path: {}", path.display()))
+        })?)
         .build()
         .await?;
         let conn = db.connect()?;
@@ -67,10 +66,7 @@ impl SpeckleDb {
     pub async fn get_speckle_by_id(&self, id: i64) -> Result<Speckle, DbError> {
         let mut rows = self
             .conn
-            .query(
-                "SELECT id, identifier FROM speckle WHERE id = ?1",
-                [id],
-            )
+            .query("SELECT id, identifier FROM speckle WHERE id = ?1", [id])
             .await?;
         let row = rows.next().await?.ok_or(DbError::NotFound)?;
         Speckle::from_row(&row)
