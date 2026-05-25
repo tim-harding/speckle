@@ -1,0 +1,8 @@
+---
+source: speckle-syntax/src/item_speckle_attribute_tests.rs
+expression: "snapshot_speckle_attribute(&format!(\"#[speckle(\\\"{EXAMPLE_ID}\\\")]\\nstruct Foo;\"))"
+---
+byte_start: 0
+byte_end: 50
+arguments:
+  - cb4cb14c-8e40-495a-b17f-6227b622f4a8
