@@ -56,7 +56,7 @@ impl SpeckleDb {
         self.conn
             .execute(
                 "INSERT INTO speckle (identifier) VALUES (?1)",
-                [speckle.identifier.as_str()],
+                speckle.into_params(),
             )
             .await?;
         let id = last_insert_rowid(&self.conn).await?;
@@ -91,12 +91,7 @@ impl SpeckleDb {
         self.conn
             .execute(
                 "INSERT INTO source_range (commit_hash, file_path, byte_start, byte_end) VALUES (?1, ?2, ?3, ?4)",
-                (
-                    source_range.commit_hash.as_str(),
-                    source_range.file_path.as_str(),
-                    source_range.byte_start,
-                    source_range.byte_end,
-                ),
+                source_range.into_params(),
             )
             .await?;
         let id = last_insert_rowid(&self.conn).await?;
@@ -122,11 +117,7 @@ impl SpeckleDb {
         self.conn
             .execute(
                 "INSERT INTO specification (id_speckle, version_number, id_source_range) VALUES (?1, ?2, ?3)",
-                (
-                    specification.id_speckle,
-                    specification.version_number,
-                    specification.id_source_range,
-                ),
+                specification.into_params(),
             )
             .await?;
         let id = last_insert_rowid(&self.conn).await?;
@@ -170,10 +161,7 @@ impl SpeckleDb {
         self.conn
             .execute(
                 "INSERT INTO implementation (id_specification, id_source_range) VALUES (?1, ?2)",
-                (
-                    implementation.id_specification,
-                    implementation.id_source_range,
-                ),
+                implementation.into_params(),
             )
             .await?;
         let id = last_insert_rowid(&self.conn).await?;

@@ -13,6 +13,12 @@ pub struct NewSpeckle {
     pub identifier: String,
 }
 
+impl NewSpeckle {
+    pub(crate) fn into_params(self) -> [String; 1] {
+        [self.identifier]
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SourceRange {
     pub id: i64,
@@ -30,6 +36,17 @@ pub struct NewSourceRange {
     pub byte_end: i64,
 }
 
+impl NewSourceRange {
+    pub(crate) fn into_params(self) -> (String, String, i64, i64) {
+        (
+            self.commit_hash,
+            self.file_path,
+            self.byte_start,
+            self.byte_end,
+        )
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Specification {
     pub id: i64,
@@ -45,6 +62,12 @@ pub struct NewSpecification {
     pub id_source_range: i64,
 }
 
+impl NewSpecification {
+    pub(crate) fn into_params(self) -> (i64, i64, i64) {
+        (self.id_speckle, self.version_number, self.id_source_range)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Implementation {
     pub id: i64,
@@ -56,6 +79,12 @@ pub struct Implementation {
 pub struct NewImplementation {
     pub id_specification: i64,
     pub id_source_range: i64,
+}
+
+impl NewImplementation {
+    pub(crate) fn into_params(self) -> (i64, i64) {
+        (self.id_specification, self.id_source_range)
+    }
 }
 
 impl Speckle {
