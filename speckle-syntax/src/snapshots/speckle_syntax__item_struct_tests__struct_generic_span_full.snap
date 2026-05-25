@@ -1,8 +1,0 @@
----
-source: speckle-syntax/src/item_struct_tests.rs
-expression: "span_snapshot(source, item.span_full())"
----
-source: "pub struct Foo<T: Clone> { x: T }"
-byte_start: 0
-byte_end: 33
-snippet: "pub struct Foo<T: Clone> { x: T }"

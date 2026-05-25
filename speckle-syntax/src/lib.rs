@@ -9,9 +9,6 @@ use syn::{
 #[cfg(test)]
 mod item_docs_tests;
 
-#[cfg(test)]
-mod item_struct_tests;
-
 pub struct SourceRange {
     pub file: String,
     pub byte_start: usize,
@@ -74,21 +71,6 @@ impl TryFrom<syn::Item> for Item {
 }
 
 impl Item {
-    pub fn span_full(&self) -> Span {
-        match self {
-            Item::Static(item) => item.span(),
-            Item::Const(item) => item.span(),
-            Item::Struct(item) => item.span(),
-            Item::Enum(item) => item.span(),
-            Item::Union(item) => item.span(),
-            Item::Fn(item) => item.span(),
-            Item::Trait(item) => item.span(),
-            Item::Impl(item) => item.span(),
-            Item::Macro(item) => item.span(),
-            Item::Mod(item) => item.span(),
-        }
-    }
-
     pub fn span_content(&self) -> Span {
         match self {
             Item::Static(item) => item.expr.span(),
