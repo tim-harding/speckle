@@ -113,9 +113,16 @@ impl Item {
         }
     }
 
-    pub fn speckle_attribute(&self) -> Option<&Attribute> {
+    pub fn speckle_attribute(&self) -> Result<&Attribute, SyntaxError> {
         self.attributes()
             .iter()
             .find(|attr| attr.path().is_ident("speckle"))
+            .ok_or(SyntaxError::MissingSpeckleAttribute)
     }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum SyntaxError {
+    #[error("Missing #[speckle] attribute")]
+    MissingSpeckleAttribute,
 }
