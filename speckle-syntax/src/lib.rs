@@ -7,7 +7,10 @@ use syn::{
     spanned::Spanned,
 };
 
+mod source_range;
 mod speckle_attribute;
+
+pub use source_range::SourceRange;
 
 #[cfg(test)]
 mod item_docs_tests;
@@ -17,23 +20,6 @@ mod item_span_content_tests;
 
 #[cfg(test)]
 mod item_speckle_attribute_tests;
-
-pub struct SourceRange {
-    pub file: String,
-    pub byte_start: usize,
-    pub byte_end: usize,
-}
-
-impl From<Span> for SourceRange {
-    fn from(span: Span) -> Self {
-        let bytes = span.byte_range();
-        Self {
-            file: span.file(),
-            byte_start: bytes.start,
-            byte_end: bytes.end,
-        }
-    }
-}
 
 pub enum Item {
     Static(ItemStatic),
