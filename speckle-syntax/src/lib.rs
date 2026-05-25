@@ -1,10 +1,13 @@
+use crate::speckle_attribute::{SpeckleAttribute, SpeckleAttributeError};
 use proc_macro2::Span;
 use syn::{
     Attribute, Expr, ExprLit, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod,
-    ItemStatic, ItemStruct, ItemTrait, ItemUnion, Lit, LitStr, Meta, MetaList, MetaNameValue,
+    ItemStatic, ItemStruct, ItemTrait, ItemUnion, Lit, MetaNameValue,
     parse::{Parse, ParseStream, Result as ParseResult},
     spanned::Spanned,
 };
+
+mod speckle_attribute;
 
 #[cfg(test)]
 mod item_docs_tests;
@@ -146,75 +149,14 @@ impl Item {
             .iter()
             .find(|attr| attr.path().is_ident("speckle"))
             .ok_or(SyntaxError::MissingSpeckleAttribute)?;
-        SpeckleAttribute::parse(attr)
+        Ok(SpeckleAttribute::parse(attr)?)
     }
-}
-
-#[derive(Debug)]
-pub struct SpeckleAttribute {
-    pub span: Span,
-    pub arguments: Vec<SpeckleAttributeArgument>,
-}
-
-impl SpeckleAttribute {
-    pub fn parse(attr: &Attribute) -> Result<Self, SyntaxError> {
-        if !attr.path().is_ident("speckle") {
-            return Err(SyntaxError::InvalidSpeckleAttribute(
-                "expected `speckle` attribute".into(),
-            ));
-        }
-
-        let arguments = match &attr.meta {
-            Meta::Path(_) => Vec::new(),
-            Meta::List(list) => parse_speckle_list(list)?,
-            Meta::NameValue(_) => {
-                return Err(SyntaxError::InvalidSpeckleAttribute(
-                    "expected `#[speckle]` or `#[speckle(...)]`".into(),
-                ));
-            }
-        };
-
-        Ok(Self {
-            span: attr.span(),
-            arguments,
-        })
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum SpeckleAttributeArgument {
-    Identifier(String),
-}
-
-fn parse_speckle_list(list: &MetaList) -> Result<Vec<SpeckleAttributeArgument>, SyntaxError> {
-    if let Ok(lit) = list.parse_args::<LitStr>() {
-        return Ok(vec![SpeckleAttributeArgument::Identifier(lit.value())]);
-    }
-
-    let mut arguments = Vec::new();
-    list.parse_nested_meta(|meta| {
-        if !meta.path.is_ident("id") {
-            return Err(meta.error("expected `id`"));
-        }
-        let value = meta
-            .value()?
-            .parse::<LitStr>()
-            .map_err(|err| meta.error(err))?;
-        if !arguments.is_empty() {
-            return Err(meta.error("duplicate argument"));
-        }
-        arguments.push(SpeckleAttributeArgument::Identifier(value.value()));
-        Ok(())
-    })
-    .map_err(|err| SyntaxError::InvalidSpeckleAttribute(err.to_string()))?;
-
-    Ok(arguments)
 }
 
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum SyntaxError {
-    #[error("Missing #[speckle] attribute")]
+    #[error("missing #[speckle] attribute")]
     MissingSpeckleAttribute,
-    #[error("Invalid #[speckle] attribute: {0}")]
-    InvalidSpeckleAttribute(String),
+    #[error("invalid #[speckle] attribute: {0}")]
+    SpeckleAttribute(#[from] SpeckleAttributeError),
 }

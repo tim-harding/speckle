@@ -1,7 +1,9 @@
+use crate::{
+    Item, SourceRange, SyntaxError,
+    speckle_attribute::{SpeckleAttributeArgument, SpeckleAttributeError},
+};
 use serde::Serialize;
 use syn::parse_str;
-
-use crate::{Item, SourceRange, SpeckleAttributeArgument, SyntaxError};
 
 const EXAMPLE_ID: &str = "cb4cb14c-8e40-495a-b17f-6227b622f4a8";
 
@@ -65,11 +67,11 @@ fn test_speckle_attribute_missing() {
 
 #[test]
 fn test_speckle_attribute_rejects_unknown_named_argument() {
-    let item = parse_item(&format!(
-        "#[speckle(uuid = \"{EXAMPLE_ID}\")]\nstruct Foo;"
-    ));
+    let item = parse_item(&format!("#[speckle(uuid = \"{EXAMPLE_ID}\")]\nstruct Foo;"));
     assert!(matches!(
         item.speckle_attribute(),
-        Err(SyntaxError::InvalidSpeckleAttribute(_))
+        Err(SyntaxError::SpeckleAttribute(
+            SpeckleAttributeError::DuplicateArgument
+        ))
     ));
 }
