@@ -6,6 +6,15 @@ pub struct Speckle {
     pub identifier: String,
 }
 
+impl Speckle {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
+        Ok(Self {
+            id: row.get(0)?,
+            identifier: row.get(1)?,
+        })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NewSpeckle {
     pub identifier: String,
@@ -24,6 +33,18 @@ pub struct SourceRange {
     pub file_path: String,
     pub byte_start: i64,
     pub byte_end: i64,
+}
+
+impl SourceRange {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
+        Ok(Self {
+            id: row.get(0)?,
+            commit_hash: row.get(1)?,
+            file_path: row.get(2)?,
+            byte_start: row.get(3)?,
+            byte_end: row.get(4)?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -52,6 +73,16 @@ pub struct Specification {
     pub id_source_range: i64,
 }
 
+impl Specification {
+    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
+        Ok(Self {
+            id: row.get(0)?,
+            id_speckle: row.get(1)?,
+            id_source_range: row.get(2)?,
+        })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NewSpecification {
     pub id_speckle: i64,
@@ -71,92 +102,6 @@ pub struct ImplementationJob {
     pub id_external: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NewImplementationJob {
-    pub id_specification: i64,
-    pub id_external: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Implementation {
-    pub id: i64,
-    pub id_specification: i64,
-    pub id_source_range: i64,
-    pub source_tokens: Vec<u8>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NewImplementation {
-    pub id_specification: i64,
-    pub id_source_range: i64,
-    pub source_tokens: Vec<u8>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ImplementationAccepted {
-    pub id_speckle: i64,
-    pub id_implementation: i64,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NewImplementationAccepted {
-    pub id_speckle: i64,
-    pub id_implementation: i64,
-}
-
-impl NewImplementation {
-    pub(crate) fn into_params(self) -> (i64, i64, Vec<u8>) {
-        (
-            self.id_specification,
-            self.id_source_range,
-            self.source_tokens,
-        )
-    }
-}
-
-impl NewImplementationJob {
-    pub(crate) fn into_params(self) -> (i64, Option<String>) {
-        (self.id_specification, self.id_external)
-    }
-}
-
-impl NewImplementationAccepted {
-    pub(crate) fn into_params(self) -> (i64, i64) {
-        (self.id_speckle, self.id_implementation)
-    }
-}
-
-impl Speckle {
-    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
-        Ok(Self {
-            id: row.get(0)?,
-            identifier: row.get(1)?,
-        })
-    }
-}
-
-impl SourceRange {
-    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
-        Ok(Self {
-            id: row.get(0)?,
-            commit_hash: row.get(1)?,
-            file_path: row.get(2)?,
-            byte_start: row.get(3)?,
-            byte_end: row.get(4)?,
-        })
-    }
-}
-
-impl Specification {
-    pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
-        Ok(Self {
-            id: row.get(0)?,
-            id_speckle: row.get(1)?,
-            id_source_range: row.get(2)?,
-        })
-    }
-}
-
 impl ImplementationJob {
     pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
@@ -165,6 +110,26 @@ impl ImplementationJob {
             id_external: row.get(2)?,
         })
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NewImplementationJob {
+    pub id_specification: i64,
+    pub id_external: Option<String>,
+}
+
+impl NewImplementationJob {
+    pub(crate) fn into_params(self) -> (i64, Option<String>) {
+        (self.id_specification, self.id_external)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Implementation {
+    pub id: i64,
+    pub id_specification: i64,
+    pub id_source_range: i64,
+    pub source_tokens: Vec<u8>,
 }
 
 impl Implementation {
@@ -178,11 +143,46 @@ impl Implementation {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NewImplementation {
+    pub id_specification: i64,
+    pub id_source_range: i64,
+    pub source_tokens: Vec<u8>,
+}
+
+impl NewImplementation {
+    pub(crate) fn into_params(self) -> (i64, i64, Vec<u8>) {
+        (
+            self.id_specification,
+            self.id_source_range,
+            self.source_tokens,
+        )
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImplementationAccepted {
+    pub id_speckle: i64,
+    pub id_implementation: i64,
+}
+
 impl ImplementationAccepted {
     pub(crate) fn from_row(row: &Row<'_>) -> SqliteResult<Self> {
         Ok(Self {
             id_speckle: row.get(0)?,
             id_implementation: row.get(1)?,
         })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NewImplementationAccepted {
+    pub id_speckle: i64,
+    pub id_implementation: i64,
+}
+
+impl NewImplementationAccepted {
+    pub(crate) fn into_params(self) -> (i64, i64) {
+        (self.id_speckle, self.id_implementation)
     }
 }
