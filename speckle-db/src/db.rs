@@ -5,8 +5,8 @@ use rusqlite::Connection;
 use crate::DbError;
 use crate::model::{
     Implementation, ImplementationAccepted, ImplementationJob, NewImplementation,
-    NewImplementationAccepted, NewImplementationJob, NewSourceRange, NewSpecification,
-    NewSpeckle, SourceRange, Specification, Speckle,
+    NewImplementationAccepted, NewImplementationJob, NewSourceRange, NewSpecification, NewSpeckle,
+    SourceRange, Specification, Speckle,
 };
 
 pub const DEFAULT_PATH: &str = ".speckle/speckle.db";
@@ -324,10 +324,7 @@ mod tests {
             byte_start: 10,
             byte_end: 42,
         })?;
-        assert_eq!(
-            db.get_source_range_by_id(source_range.id)?,
-            source_range
-        );
+        assert_eq!(db.get_source_range_by_id(source_range.id)?, source_range);
 
         let specification = db.insert_specification(NewSpecification {
             id_speckle: speckle.id,
@@ -346,10 +343,7 @@ mod tests {
             db.list_implementation_jobs_for_specification(specification.id)?,
             vec![job.clone()]
         );
-        assert_eq!(
-            db.get_implementation_job_by_external("agent-run-1")?,
-            job
-        );
+        assert_eq!(db.get_implementation_job_by_external("agent-run-1")?, job);
 
         let implementation = db.insert_implementation(NewImplementation {
             id_specification: specification.id,
