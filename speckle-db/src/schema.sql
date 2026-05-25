@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS implementation (
 );
 
 -- To look up all implementations for a given specification.
-CREATE INDEX IF NOT EXISTS idx_id_specification ON implementation (id_specification);
+CREATE INDEX IF NOT EXISTS idx_implementation_id_specification ON implementation (id_specification);
 
 -- A record of the accepted implementation of a specification
 -- that the macro will substitute for the annotated item.
@@ -72,8 +72,8 @@ CREATE TABLE IF NOT EXISTS implementation_accepted (
     id_speckle INTEGER,
     -- The implementation that was accepted.
     id_implementation INTEGER,
-    PRIMARY KEY (id_specification, id_implementation)
-) WITHOUT ROWID;
+    PRIMARY KEY (id_speckle, id_implementation)
+);
 
 -- A record of a source location in the repository history.
 CREATE TABLE IF NOT EXISTS source_range (

@@ -67,21 +67,64 @@ impl NewSpecification {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImplementationJob {
+    pub id: i64,
+    pub id_specification: i64,
+    pub id_external: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NewImplementationJob {
+    pub id_specification: i64,
+    pub id_external: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Implementation {
     pub id: i64,
     pub id_specification: i64,
     pub id_source_range: i64,
+    pub source_tokens: Vec<u8>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NewImplementation {
     pub id_specification: i64,
     pub id_source_range: i64,
+    pub source_tokens: Vec<u8>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImplementationAccepted {
+    pub id_speckle: i64,
+    pub id_implementation: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NewImplementationAccepted {
+    pub id_speckle: i64,
+    pub id_implementation: i64,
 }
 
 impl NewImplementation {
+    pub(crate) fn into_params(self) -> (i64, i64, Vec<u8>) {
+        (
+            self.id_specification,
+            self.id_source_range,
+            self.source_tokens,
+        )
+    }
+}
+
+impl NewImplementationJob {
+    pub(crate) fn into_params(self) -> (i64, Option<String>) {
+        (self.id_specification, self.id_external)
+    }
+}
+
+impl NewImplementationAccepted {
     pub(crate) fn into_params(self) -> (i64, i64) {
-        (self.id_specification, self.id_source_range)
+        (self.id_speckle, self.id_implementation)
     }
 }
 
@@ -116,12 +159,32 @@ impl Specification {
     }
 }
 
+impl ImplementationJob {
+    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+        Ok(Self {
+            id: column_integer(row, 0, "implementation_job.id")?,
+            id_specification: column_integer(row, 1, "implementation_job.id_specification")?,
+            id_external: column_optional_text(row, 2, "implementation_job.id_external")?,
+        })
+    }
+}
+
 impl Implementation {
     pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
         Ok(Self {
             id: column_integer(row, 0, "implementation.id")?,
             id_specification: column_integer(row, 1, "implementation.id_specification")?,
             id_source_range: column_integer(row, 2, "implementation.id_source_range")?,
+            source_tokens: column_blob(row, 3, "implementation.source_tokens")?,
+        })
+    }
+}
+
+impl ImplementationAccepted {
+    pub(crate) fn from_row(row: &Row) -> Result<Self, DbError> {
+        Ok(Self {
+            id_speckle: column_integer(row, 0, "implementation_accepted.id_speckle")?,
+            id_implementation: column_integer(row, 1, "implementation_accepted.id_implementation")?,
         })
     }
 }
@@ -140,6 +203,29 @@ pub(crate) fn column_text(row: &Row, index: usize, name: &str) -> Result<String,
         Value::Text(value) => Ok(value),
         other => Err(DbError::UnexpectedValue(format!(
             "expected text for {name}, got {other:?}"
+        ))),
+    }
+}
+
+pub(crate) fn column_optional_text(
+    row: &Row,
+    index: usize,
+    name: &str,
+) -> Result<Option<String>, DbError> {
+    match row.get_value(index)? {
+        Value::Null => Ok(None),
+        Value::Text(value) => Ok(Some(value)),
+        other => Err(DbError::UnexpectedValue(format!(
+            "expected text or null for {name}, got {other:?}"
+        ))),
+    }
+}
+
+pub(crate) fn column_blob(row: &Row, index: usize, name: &str) -> Result<Vec<u8>, DbError> {
+    match row.get_value(index)? {
+        Value::Blob(value) => Ok(value),
+        other => Err(DbError::UnexpectedValue(format!(
+            "expected blob for {name}, got {other:?}"
         ))),
     }
 }
