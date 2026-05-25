@@ -1,5 +1,6 @@
 use proc_macro2::Span;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SourceRange {
     pub file: String,
     pub byte_start: usize,

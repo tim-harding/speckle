@@ -26,6 +26,10 @@ impl SpeckleAttribute {
             arguments,
         })
     }
+
+    pub fn is_bare(&self) -> bool {
+        self.arguments.is_empty()
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
