@@ -269,9 +269,9 @@ struct Foo;"#
     }
 
     #[test]
-    fn test_skip_existing_named_id() {
+    fn test_skip_existing_named_identifier() {
         let source = format!(
-            r#"#[speckle(id = "{EXAMPLE_ID}")]
+            r#"#[speckle(identifier = "{EXAMPLE_ID}")]
 struct Foo;"#
         );
         let patcher = patcher_for(&source);

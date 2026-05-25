@@ -46,8 +46,8 @@ fn parse_speckle_list(
 
     let mut arguments = Vec::new();
     list.parse_nested_meta(|meta| {
-        if !meta.path.is_ident("id") {
-            return Err(meta.error("expected `id`"));
+        if !meta.path.is_ident("identifier") {
+            return Err(meta.error("expected `identifier`"));
         }
         let value = meta
             .value()?
@@ -70,8 +70,8 @@ pub enum SpeckleAttributeError {
     ExpectedSpeckleAttribute,
     #[error("expected `#[speckle]` or `#[speckle(...)]`")]
     ExpectedSpeckleAttributeList,
-    #[error("expected `id`")]
-    ExpectedId,
+    #[error("expected `identifier`")]
+    ExpectedIdentifier,
     #[error("duplicate argument")]
     DuplicateArgument,
 }
@@ -133,9 +133,9 @@ mod tests {
     }
 
     #[test]
-    fn test_speckle_attribute_named_id() {
+    fn test_speckle_attribute_named_identifier() {
         insta::assert_yaml_snapshot!(snapshot_speckle_attribute(&formatdoc! {"
-            #[speckle(id = \"{EXAMPLE_ID}\")]
+            #[speckle(identifier = \"{EXAMPLE_ID}\")]
             struct Foo;
         "}));
     }
