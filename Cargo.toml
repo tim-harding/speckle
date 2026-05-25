@@ -1,3 +1,11 @@
 [workspace]
 resolver = "3"
 members = ["cargo-speckle", "speckle", "speckle-db", "speckle-macro", "speckle-syntax"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/tim-harding/speckle"
+homepage = "https://github.com/tim-harding/speckle"
+keywords = ["speckle", "ai", "code-generation", "rust"]

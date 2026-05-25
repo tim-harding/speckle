@@ -1,7 +1,13 @@
 [package]
 name = "cargo-speckle"
-version = "0.1.0"
-edition = "2024"
+description = "Cargo subcommand for managing Speckle attributes in Rust source files"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 clap = { version = "4.5.60", features = ["derive"] }
