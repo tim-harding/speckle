@@ -39,9 +39,7 @@ impl SpeckleDb {
     }
 
     pub fn migrate(&self) -> Result<(), DbError> {
-        for statement in split_sql_statements(SCHEMA) {
-            self.conn.execute(&statement, ())?;
-        }
+        self.conn.execute_batch(SCHEMA)?;
         Ok(())
     }
 
@@ -301,27 +299,6 @@ fn map_not_found(error: rusqlite::Error) -> DbError {
         rusqlite::Error::QueryReturnedNoRows => DbError::NotFound,
         other => other.into(),
     }
-}
-
-fn split_sql_statements(schema: &str) -> Vec<String> {
-    let stripped = schema
-        .lines()
-        .map(|line| {
-            if let Some(comment_start) = line.find("--") {
-                &line[..comment_start]
-            } else {
-                line
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    stripped
-        .split(';')
-        .map(str::trim)
-        .filter(|statement| !statement.is_empty())
-        .map(str::to_string)
-        .collect()
 }
 
 #[cfg(test)]
