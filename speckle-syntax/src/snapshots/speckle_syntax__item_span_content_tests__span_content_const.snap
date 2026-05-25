@@ -1,0 +1,7 @@
+---
+source: speckle-syntax/src/item_span_content_tests.rs
+expression: "snapshot_span_content(\"const FOO: i32 = 42;\")"
+---
+byte_start: 17
+byte_end: 19
+content: "42"

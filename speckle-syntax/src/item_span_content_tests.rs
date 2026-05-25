@@ -14,20 +14,6 @@ struct SpanContentSnapshot {
     content: String,
 }
 
-#[derive(Serialize)]
-struct AllVariantSpanContents {
-    r#static: SpanContentSnapshot,
-    r#const: SpanContentSnapshot,
-    r#struct: SpanContentSnapshot,
-    r#enum: SpanContentSnapshot,
-    union: SpanContentSnapshot,
-    r#fn: SpanContentSnapshot,
-    r#trait: SpanContentSnapshot,
-    r#impl: SpanContentSnapshot,
-    r#macro: SpanContentSnapshot,
-    r#mod: SpanContentSnapshot,
-}
-
 fn snapshot_span_content(source: &str) -> SpanContentSnapshot {
     let item = parse_item(source);
     let range = SourceRange::from(item.span_content());
@@ -39,17 +25,51 @@ fn snapshot_span_content(source: &str) -> SpanContentSnapshot {
 }
 
 #[test]
-fn test_span_content_each_variant() {
-    insta::assert_yaml_snapshot!(AllVariantSpanContents {
-        r#static: snapshot_span_content("static FOO: i32 = 42;"),
-        r#const: snapshot_span_content("const FOO: i32 = 42;"),
-        r#struct: snapshot_span_content("struct Foo { x: i32 }"),
-        r#enum: snapshot_span_content("enum Foo { A, B }"),
-        union: snapshot_span_content("union Foo { f1: u32, f2: f32 }"),
-        r#fn: snapshot_span_content("fn foo() { 1 }"),
-        r#trait: snapshot_span_content("trait Foo { fn bar(); }"),
-        r#impl: snapshot_span_content("impl Foo { fn bar() {} }"),
-        r#macro: snapshot_span_content("macro_rules! foo { () => {} }"),
-        r#mod: snapshot_span_content("mod foo {}"),
-    });
+fn test_span_content_static() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("static FOO: i32 = 42;"));
+}
+
+#[test]
+fn test_span_content_const() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("const FOO: i32 = 42;"));
+}
+
+#[test]
+fn test_span_content_struct() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("struct Foo { x: i32 }"));
+}
+
+#[test]
+fn test_span_content_enum() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("enum Foo { A, B }"));
+}
+
+#[test]
+fn test_span_content_union() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("union Foo { f1: u32, f2: f32 }"));
+}
+
+#[test]
+fn test_span_content_fn() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("fn foo() { 1 }"));
+}
+
+#[test]
+fn test_span_content_trait() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("trait Foo { fn bar(); }"));
+}
+
+#[test]
+fn test_span_content_impl() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("impl Foo { fn bar() {} }"));
+}
+
+#[test]
+fn test_span_content_macro() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("macro_rules! foo { () => {} }"));
+}
+
+#[test]
+fn test_span_content_mod() {
+    insta::assert_yaml_snapshot!(snapshot_span_content("mod foo {}"));
 }

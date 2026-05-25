@@ -1,0 +1,7 @@
+---
+source: speckle-syntax/src/item_span_content_tests.rs
+expression: "snapshot_span_content(\"enum Foo { A, B }\")"
+---
+byte_start: 11
+byte_end: 15
+content: "A, B"
