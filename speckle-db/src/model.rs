@@ -51,20 +51,18 @@ impl NewSourceRange {
 pub struct Specification {
     pub id: i64,
     pub id_speckle: i64,
-    pub version_number: i64,
     pub id_source_range: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NewSpecification {
     pub id_speckle: i64,
-    pub version_number: i64,
     pub id_source_range: i64,
 }
 
 impl NewSpecification {
-    pub(crate) fn into_params(self) -> (i64, i64, i64) {
-        (self.id_speckle, self.version_number, self.id_source_range)
+    pub(crate) fn into_params(self) -> (i64, i64) {
+        (self.id_speckle, self.id_source_range)
     }
 }
 
@@ -113,8 +111,7 @@ impl Specification {
         Ok(Self {
             id: column_integer(row, 0, "specification.id")?,
             id_speckle: column_integer(row, 1, "specification.id_speckle")?,
-            version_number: column_integer(row, 2, "specification.version_number")?,
-            id_source_range: column_integer(row, 3, "specification.id_source_range")?,
+            id_source_range: column_integer(row, 2, "specification.id_source_range")?,
         })
     }
 }

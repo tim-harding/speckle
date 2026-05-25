@@ -126,7 +126,7 @@ impl SpeckleDb {
     ) -> Result<Specification, DbError> {
         self.conn
             .execute(
-                "INSERT INTO specification (id_speckle, version_number, id_source_range) VALUES (?1, ?2, ?3)",
+                "INSERT INTO specification (id_speckle, id_source_range) VALUES (?1, ?2)",
                 specification.into_params(),
             )
             .await?;
@@ -138,7 +138,7 @@ impl SpeckleDb {
         let mut rows = self
             .conn
             .query(
-                "SELECT id, id_speckle, version_number, id_source_range FROM specification WHERE id = ?1",
+                "SELECT id, id_speckle, id_source_range FROM specification WHERE id = ?1",
                 [id],
             )
             .await?;
@@ -153,7 +153,7 @@ impl SpeckleDb {
         let mut rows = self
             .conn
             .query(
-                "SELECT id, id_speckle, version_number, id_source_range FROM specification WHERE id_speckle = ?1 ORDER BY version_number",
+                "SELECT id, id_speckle, id_source_range FROM specification WHERE id_speckle = ?1 ORDER BY id",
                 [id_speckle],
             )
             .await?;
@@ -254,7 +254,6 @@ mod tests {
         let specification = db
             .insert_specification(NewSpecification {
                 id_speckle: speckle.id,
-                version_number: 1,
                 id_source_range: source_range.id,
             })
             .await?;
