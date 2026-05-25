@@ -10,6 +10,7 @@ tempfile = "3.26.0"
 thiserror = "2.0.18"
 
 [dev-dependencies]
+indoc = "2.0.6"
 insta = { version = "1.47.2", features = ["yaml"] }
 serde = { version = "1.0.228", features = ["derive"] }
 tempfile = "3.26.0"

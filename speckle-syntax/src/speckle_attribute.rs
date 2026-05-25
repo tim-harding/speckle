@@ -80,6 +80,7 @@ pub enum SpeckleAttributeError {
 mod tests {
     use super::*;
     use crate::{Item, SourceRange, SyntaxError};
+    use indoc::{formatdoc, indoc};
     use serde::Serialize;
     use syn::parse_str;
 
@@ -117,26 +118,26 @@ mod tests {
 
     #[test]
     fn test_speckle_attribute_bare() {
-        insta::assert_yaml_snapshot!(snapshot_speckle_attribute(
-            r#"#[speckle]
-struct Foo;"#
-        ));
+        insta::assert_yaml_snapshot!(snapshot_speckle_attribute(indoc! {"
+            #[speckle]
+            struct Foo;
+        "}));
     }
 
     #[test]
     fn test_speckle_attribute_positional_string() {
-        insta::assert_yaml_snapshot!(snapshot_speckle_attribute(&format!(
-            r#"#[speckle("{EXAMPLE_ID}")]
-struct Foo;"#
-        )));
+        insta::assert_yaml_snapshot!(snapshot_speckle_attribute(&formatdoc! {"
+            #[speckle(\"{EXAMPLE_ID}\")]
+            struct Foo;
+        "}));
     }
 
     #[test]
     fn test_speckle_attribute_named_id() {
-        insta::assert_yaml_snapshot!(snapshot_speckle_attribute(&format!(
-            r#"#[speckle(id = "{EXAMPLE_ID}")]
-struct Foo;"#
-        )));
+        insta::assert_yaml_snapshot!(snapshot_speckle_attribute(&formatdoc! {"
+            #[speckle(id = \"{EXAMPLE_ID}\")]
+            struct Foo;
+        "}));
     }
 
     #[test]
@@ -150,10 +151,10 @@ struct Foo;"#
 
     #[test]
     fn test_speckle_attribute_rejects_unknown_named_argument() {
-        let item = parse_item(&format!(
-            r#"#[speckle(uuid = "{EXAMPLE_ID}")]
-struct Foo;"#
-        ));
+        let item = parse_item(&formatdoc! {"
+            #[speckle(uuid = \"{EXAMPLE_ID}\")]
+            struct Foo;
+        "});
         assert!(matches!(
             item.speckle_attribute(),
             Err(SyntaxError::SpeckleAttribute(
