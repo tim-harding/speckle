@@ -1,0 +1,9 @@
+---
+source: speckle-syntax/src/file_patcher.rs
+expression: "patch(\"#[speckle]\\nmod foo {\\n    #[speckle]\\n    fn bar() {}\\n}\",\n&[EXAMPLE_ID, OTHER_ID])"
+---
+#[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
+mod foo {
+    #[speckle("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")]
+    fn bar() {}
+}

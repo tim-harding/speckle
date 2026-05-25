@@ -1,0 +1,7 @@
+---
+source: speckle-syntax/src/file_patcher.rs
+expression: "patch(\"#[derive(Debug)]\\n#[speckle]\\nstruct Foo { x: i32 }\", &[EXAMPLE_ID])"
+---
+#[derive(Debug)]
+#[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
+struct Foo { x: i32 }

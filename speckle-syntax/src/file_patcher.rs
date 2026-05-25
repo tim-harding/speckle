@@ -188,89 +188,47 @@ mod tests {
 
     #[test]
     fn test_patch_single_bare_attribute() {
-        insta::assert_snapshot!(patch("#[speckle]\nstruct Foo;", &[EXAMPLE_ID]), @r###"
-        #[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
-        struct Foo;
-        "###);
+        insta::assert_snapshot!(patch("#[speckle]\nstruct Foo;", &[EXAMPLE_ID]));
     }
 
     #[test]
     fn test_patch_multiple_bare_attributes() {
-        insta::assert_snapshot!(
-            patch(
-                "#[speckle]\nstruct Foo;\n\n#[speckle]\nfn bar() {}",
-                &[EXAMPLE_ID, OTHER_ID]
-            ),
-            @r###"
-        #[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
-        struct Foo;
-
-        #[speckle("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")]
-        fn bar() {}
-        "###
-        );
+        insta::assert_snapshot!(patch(
+            "#[speckle]\nstruct Foo;\n\n#[speckle]\nfn bar() {}",
+            &[EXAMPLE_ID, OTHER_ID]
+        ));
     }
 
     #[test]
     fn test_patch_bare_attribute_with_other_attributes() {
-        insta::assert_snapshot!(
-            patch("#[derive(Debug)]\n#[speckle]\nstruct Foo { x: i32 }", &[EXAMPLE_ID]),
-            @r###"
-        #[derive(Debug)]
-        #[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
-        struct Foo { x: i32 }
-        "###
-        );
+        insta::assert_snapshot!(patch(
+            "#[derive(Debug)]\n#[speckle]\nstruct Foo { x: i32 }",
+            &[EXAMPLE_ID]
+        ));
     }
 
     #[test]
     fn test_patch_nested_mod_fn() {
-        insta::assert_snapshot!(
-            patch("#[speckle]\nmod foo {\n    #[speckle]\n    fn bar() {}\n}", &[EXAMPLE_ID, OTHER_ID]),
-            @r###"
-        #[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
-        mod foo {
-            #[speckle("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")]
-            fn bar() {}
-        }
-        "###
-        );
+        insta::assert_snapshot!(patch(
+            "#[speckle]\nmod foo {\n    #[speckle]\n    fn bar() {}\n}",
+            &[EXAMPLE_ID, OTHER_ID]
+        ));
     }
 
     #[test]
     fn test_patch_trait_method() {
-        insta::assert_snapshot!(
-            patch(
-                "#[speckle]\ntrait Foo {\n    #[speckle]\n    fn bar(&self);\n}",
-                &[EXAMPLE_ID, OTHER_ID]
-            ),
-            @r###"
-        #[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
-        trait Foo {
-            #[speckle("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")]
-            fn bar(&self);
-        }
-        "###
-        );
+        insta::assert_snapshot!(patch(
+            "#[speckle]\ntrait Foo {\n    #[speckle]\n    fn bar(&self);\n}",
+            &[EXAMPLE_ID, OTHER_ID]
+        ));
     }
 
     #[test]
     fn test_patch_impl_method() {
-        insta::assert_snapshot!(
-            patch(
-                "struct Foo;\n\n#[speckle]\nimpl Foo {\n    #[speckle]\n    fn bar(&self) {}\n}",
-                &[EXAMPLE_ID, OTHER_ID]
-            ),
-            @r###"
-        struct Foo;
-
-        #[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
-        impl Foo {
-            #[speckle("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")]
-            fn bar(&self) {}
-        }
-        "###
-        );
+        insta::assert_snapshot!(patch(
+            "struct Foo;\n\n#[speckle]\nimpl Foo {\n    #[speckle]\n    fn bar(&self) {}\n}",
+            &[EXAMPLE_ID, OTHER_ID]
+        ));
     }
 
     #[test]

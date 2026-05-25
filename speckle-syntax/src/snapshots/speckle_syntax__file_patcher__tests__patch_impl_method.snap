@@ -1,0 +1,11 @@
+---
+source: speckle-syntax/src/file_patcher.rs
+expression: "patch(\"struct Foo;\\n\\n#[speckle]\\nimpl Foo {\\n    #[speckle]\\n    fn bar(&self) {}\\n}\",\n&[EXAMPLE_ID, OTHER_ID])"
+---
+struct Foo;
+
+#[speckle("cb4cb14c-8e40-495a-b17f-6227b622f4a8")]
+impl Foo {
+    #[speckle("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")]
+    fn bar(&self) {}
+}
