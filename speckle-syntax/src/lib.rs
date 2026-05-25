@@ -1,7 +1,7 @@
 use proc_macro2::Span;
 use syn::{
-    ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct, ItemTrait,
-    ItemUnion,
+    Attribute, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct,
+    ItemTrait, ItemUnion,
     parse::{Parse, ParseStream, Result as ParseResult},
     spanned::Spanned,
 };
@@ -93,6 +93,21 @@ impl Item {
             Item::Impl(item) => item.brace_token.span.join(),
             Item::Macro(item) => item.mac.span(),
             Item::Mod(item) => item.mod_token.span(),
+        }
+    }
+
+    pub fn attributes(&self) -> &[Attribute] {
+        match self {
+            Item::Static(item) => item.attrs.as_slice(),
+            Item::Const(item) => item.attrs.as_slice(),
+            Item::Struct(item) => item.attrs.as_slice(),
+            Item::Enum(item) => item.attrs.as_slice(),
+            Item::Union(item) => item.attrs.as_slice(),
+            Item::Fn(item) => item.attrs.as_slice(),
+            Item::Trait(item) => item.attrs.as_slice(),
+            Item::Impl(item) => item.attrs.as_slice(),
+            Item::Macro(item) => item.attrs.as_slice(),
+            Item::Mod(item) => item.attrs.as_slice(),
         }
     }
 }
