@@ -103,8 +103,9 @@ impl Item {
         }
     }
 
-    pub fn specification(&self) -> Vec<String> {
-        self.attributes()
+    pub fn docs(&self) -> String {
+        let docs: Vec<_> = self
+            .attributes()
             .iter()
             .filter_map(|attr| match &attr.meta {
                 syn::Meta::NameValue(MetaNameValue {
@@ -117,7 +118,8 @@ impl Item {
                 }) if path.is_ident("doc") => Some(s.value()),
                 _ => None,
             })
-            .collect()
+            .collect();
+        docs.join("\n")
     }
 
     fn attributes(&self) -> &[Attribute] {
