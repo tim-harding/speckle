@@ -1,7 +1,7 @@
 use proc_macro2::Span;
 use syn::{
-    Attribute, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod, ItemStatic, ItemStruct,
-    ItemTrait, ItemUnion,
+    Attribute, Expr, ExprLit, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod,
+    ItemStatic, ItemStruct, ItemTrait, ItemUnion, Lit, LitStr, MetaNameValue,
     parse::{Parse, ParseStream, Result as ParseResult},
     spanned::Spanned,
 };
@@ -103,15 +103,14 @@ impl Item {
             .attributes()
             .iter()
             .filter_map(|attr| match &attr.meta {
-                syn::Meta::NameValue(meta_name_value) if meta_name_value.path.is_ident("doc") => {
-                    match &meta_name_value.value {
-                        syn::Expr::Lit(syn::ExprLit {
-                            lit: syn::Lit::Str(lit_str),
-                            ..
-                        }) => Some(lit_str.value()),
-                        _ => None,
-                    }
-                }
+                syn::Meta::NameValue(MetaNameValue {
+                    path,
+                    value:
+                        Expr::Lit(ExprLit {
+                            lit: Lit::Str(s), ..
+                        }),
+                    ..
+                }) if path.is_ident("doc") => Some(s.value()),
                 _ => None,
             })
             .collect();
