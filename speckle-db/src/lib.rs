@@ -2,7 +2,7 @@ mod db;
 mod error;
 mod model;
 
-pub use db::{DEFAULT_PATH, SpeckleDb};
+pub use db::{DEFAULT_PATH, SpeckleDb, SpeckleDbSession};
 pub use error::DbError;
 pub use model::{
     Implementation, ImplementationAccepted, ImplementationJob, NewImplementation,
