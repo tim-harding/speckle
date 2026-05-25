@@ -4,4 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-limbo = "0.0.22"
+limbo = { version = "0.0.22", features = ["index_experimental"] }
+thiserror = "2.0.18"
+
+[dev-dependencies]
+tempfile = "3.26.0"
+tokio = { version = "1", features = ["rt", "macros"] }
