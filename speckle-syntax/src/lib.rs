@@ -7,6 +7,9 @@ use syn::{
 };
 
 #[cfg(test)]
+mod item_docs_tests;
+
+#[cfg(test)]
 mod item_struct_tests;
 
 pub struct SourceRange {
