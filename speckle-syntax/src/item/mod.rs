@@ -1,24 +1,15 @@
 use crate::speckle_attribute::{SpeckleAttribute, SpeckleAttributeError};
 use proc_macro2::Span;
 use syn::{
-    Attribute, Expr, ExprLit, ItemConst, ItemEnum, ItemFn, ItemImpl, ItemMacro, ItemMod,
-    ItemStatic, ItemStruct, ItemTrait, ItemUnion, Lit, MetaNameValue,
+    Attribute,
     parse::{Parse, ParseStream, Result as ParseResult},
     spanned::Spanned,
 };
 
-pub enum Item {
-    Static(ItemStatic),
-    Const(ItemConst),
-    Struct(ItemStruct),
-    Enum(ItemEnum),
-    Union(ItemUnion),
-    Fn(ItemFn),
-    Trait(ItemTrait),
-    Impl(ItemImpl),
-    Macro(ItemMacro),
-    Mod(ItemMod),
-}
+mod docs;
+mod item;
+
+pub use item::Item;
 
 impl Parse for Item {
     fn parse(input: ParseStream) -> ParseResult<Self> {
@@ -79,25 +70,6 @@ impl Item {
                 brace.span.join()
             }
         }
-    }
-
-    pub fn docs(&self) -> String {
-        let docs: Vec<_> = self
-            .attributes()
-            .iter()
-            .filter_map(|attr| match &attr.meta {
-                syn::Meta::NameValue(MetaNameValue {
-                    path,
-                    value:
-                        Expr::Lit(ExprLit {
-                            lit: Lit::Str(s), ..
-                        }),
-                    ..
-                }) if path.is_ident("doc") => Some(s.value()),
-                _ => None,
-            })
-            .collect();
-        docs.join("\n")
     }
 
     fn attributes(&self) -> &[Attribute] {

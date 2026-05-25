@@ -1,5 +1,0 @@
----
-source: speckle-syntax/src/item_docs_tests.rs
-expression: item.docs()
----
-""

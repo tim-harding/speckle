@@ -1,5 +1,5 @@
 ---
-source: speckle-syntax/src/item_docs_tests.rs
+source: speckle-syntax/src/item/docs.rs
 expression: item.docs()
 ---
 " Documented struct."
