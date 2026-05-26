@@ -23,9 +23,6 @@ mod tests {
 
     #[test]
     fn test_minified_content_fn() {
-        assert_eq!(
-            minified_content("fn foo() { 1 }").unwrap(),
-            "{1}"
-        );
+        assert_eq!(minified_content("fn foo() { 1 }").unwrap(), "{1}");
     }
 }

@@ -3,9 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use speckle_db::{
-    DEFAULT_PATH, NewSourceRange, NewSpecification, NewSpeckle, SpeckleDb,
-};
+use speckle_db::{DEFAULT_PATH, NewSourceRange, NewSpecification, NewSpeckle, SpeckleDb};
 use uuid::Uuid;
 use walkdir::{DirEntry, WalkDir};
 
@@ -131,9 +129,7 @@ fn init_ids_with_db(
             .strip_prefix(&git.toplevel)?
             .to_string_lossy()
             .into_owned();
-        let items = entry
-            .patcher
-            .find_identified_speckle_items(&entry.uuids);
+        let items = entry.patcher.find_identified_speckle_items(&entry.uuids);
 
         for item in items {
             let speckle = tx.insert_speckle(NewSpeckle {

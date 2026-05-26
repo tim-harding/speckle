@@ -28,7 +28,9 @@ pub fn require_clean_repo(cwd: &Path) -> Result<GitContext, GitError> {
         .ok_or(GitError::BareRepository)?
         .to_path_buf();
 
-    let head = repo.head().map_err(|error| GitError::Gix(error.to_string()))?;
+    let head = repo
+        .head()
+        .map_err(|error| GitError::Gix(error.to_string()))?;
     if head.is_unborn() {
         return Err(GitError::NoCommits);
     }

@@ -2,10 +2,8 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use speckle_syntax::{minified_content, SourceRange};
-use syn::{
-    Attribute, ImplItem, Meta, TraitItem, spanned::Spanned, visit::Visit,
-};
+use speckle_syntax::{SourceRange, minified_content};
+use syn::{Attribute, ImplItem, Meta, TraitItem, spanned::Spanned, visit::Visit};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BareSpeckleAttribute {
@@ -70,7 +68,10 @@ impl FilePatcher {
         visitor.found
     }
 
-    pub fn find_identified_speckle_items(&self, identifiers: &[String]) -> Vec<IdentifiedSpeckleItem> {
+    pub fn find_identified_speckle_items(
+        &self,
+        identifiers: &[String],
+    ) -> Vec<IdentifiedSpeckleItem> {
         let identifiers: std::collections::HashSet<_> = identifiers.iter().collect();
         let mut visitor = IdentifiedSpeckleVisitor {
             source: &self.source,
@@ -267,8 +268,7 @@ impl IdentifiedSpeckleVisitor<'_> {
         for attr in attrs {
             if let Some(identifier) = speckle_identifier(attr) {
                 let item_range = SourceRange::from(item_span.span());
-                let item_source =
-                    &self.source[item_range.byte_start..item_range.byte_end];
+                let item_source = &self.source[item_range.byte_start..item_range.byte_end];
                 let source_text = minified_content(item_source)
                     .expect("item source should parse after successful file parse");
                 self.found.push(IdentifiedSpeckleItem {
