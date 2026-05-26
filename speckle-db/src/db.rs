@@ -352,14 +352,15 @@ mod tests {
             id_external: Some("agent-run-1".to_string()),
         })?;
 
-        let implementation = tx.insert_implementation(NewImplementation::from_stored_span_content(
-            specification.id,
-            Some(job.id),
-            source_range.id,
-            &StoredSpanContent {
-                content: "fn foo() {}".to_string(),
-            },
-        )?)?;
+        let implementation =
+            tx.insert_implementation(NewImplementation::from_stored_span_content(
+                specification.id,
+                Some(job.id),
+                source_range.id,
+                &StoredSpanContent {
+                    content: "fn foo() {}".to_string(),
+                },
+            )?)?;
 
         let accepted = tx.insert_implementation_accepted(NewImplementationAccepted {
             id_speckle: speckle.id,

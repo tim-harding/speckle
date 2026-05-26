@@ -68,13 +68,8 @@ impl FilePatcher {
             })
             .collect();
 
-        replacements.sort_by(|left, right| {
-            right
-                .0
-                .byte_range()
-                .start
-                .cmp(&left.0.byte_range().start)
-        });
+        replacements
+            .sort_by(|left, right| right.0.byte_range().start.cmp(&left.0.byte_range().start));
 
         let count = replacements.len();
         for (range, replacement) in replacements {

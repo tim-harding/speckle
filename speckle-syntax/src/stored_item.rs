@@ -1,7 +1,7 @@
 use quote::ToTokens;
+use rkyv::rancor::Error as RkyvError;
 use rkyv::{Archive, Deserialize, Serialize};
 use rkyv::{access, deserialize, to_bytes};
-use rkyv::rancor::Error as RkyvError;
 
 use crate::item::Item;
 use crate::speckle_attribute::SpeckleAttributeArgument;

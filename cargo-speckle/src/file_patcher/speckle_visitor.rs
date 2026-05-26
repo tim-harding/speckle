@@ -29,7 +29,10 @@ impl SpeckleVisitor {
 
     fn push_speckle_attrs(&mut self, attrs: &[Attribute], span: impl Spanned) {
         let item_range = span.span();
-        for attribute in attrs.iter().filter_map(|attr| SpeckleAttribute::parse(attr).ok()) {
+        for attribute in attrs
+            .iter()
+            .filter_map(|attr| SpeckleAttribute::parse(attr).ok())
+        {
             self.sites.push(SpeckleSite {
                 attribute,
                 item_range: item_range.clone(),
