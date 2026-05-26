@@ -1,6 +1,4 @@
 use speckle_syntax::SourceRange;
-use syn::spanned::Spanned;
-use syn::{Attribute, Meta};
 
 use super::speckle_visitor::SpeckleVisitor;
 
@@ -15,14 +13,9 @@ pub fn find_bare_speckle_attributes(file: &syn::File) -> Vec<BareSpeckleAttribut
     visitor
         .into_sites()
         .into_iter()
-        .flat_map(|site| site.attrs)
-        .filter(|attr| is_bare_speckle(attr))
-        .map(|attr| BareSpeckleAttribute {
-            range: SourceRange::from(attr.span()),
+        .filter(|site| site.attribute.is_bare())
+        .map(|site| BareSpeckleAttribute {
+            range: SourceRange::from(site.attribute.span),
         })
         .collect()
-}
-
-fn is_bare_speckle(attr: &Attribute) -> bool {
-    attr.path().is_ident("speckle") && matches!(attr.meta, Meta::Path(_))
 }

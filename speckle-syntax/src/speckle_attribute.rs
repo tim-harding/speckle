@@ -30,6 +30,13 @@ impl SpeckleAttribute {
     pub fn is_bare(&self) -> bool {
         self.arguments.is_empty()
     }
+
+    pub fn identifier(&self) -> Option<&str> {
+        match self.arguments.as_slice() {
+            [SpeckleAttributeArgument::Identifier(id)] => Some(id),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
