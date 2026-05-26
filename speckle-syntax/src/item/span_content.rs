@@ -1,8 +1,76 @@
 use crate::Item;
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
+use quote::ToTokens;
 use syn::spanned::Spanned;
 
 impl Item {
+    pub fn display_content(&self) -> String {
+        self.content_tokens().to_string()
+    }
+
+    fn content_tokens(&self) -> TokenStream {
+        match self {
+            Item::Static(item) => item.expr.to_token_stream(),
+            Item::Const(item) => item.expr.to_token_stream(),
+            Item::Struct(item) => item.fields.to_token_stream(),
+            Item::Enum(item) => item.variants.to_token_stream(),
+            Item::Union(item) => item.fields.to_token_stream(),
+            Item::Fn(item) => item.block.to_token_stream(),
+            Item::Trait(item) => {
+                let mut tokens = TokenStream::new();
+                item.brace_token.surround(&mut tokens, |tokens| {
+                    for trait_item in &item.items {
+                        trait_item.to_tokens(tokens);
+                    }
+                });
+                tokens
+            }
+            Item::Impl(item) => {
+                let mut tokens = TokenStream::new();
+                item.brace_token.surround(&mut tokens, |tokens| {
+                    for impl_item in &item.items {
+                        impl_item.to_tokens(tokens);
+                    }
+                });
+                tokens
+            }
+            Item::Macro(item) => {
+                let mut tokens = TokenStream::new();
+                match item.mac.delimiter {
+                    syn::MacroDelimiter::Paren(paren) => {
+                        paren.surround(&mut tokens, |tokens| {
+                            item.mac.tokens.to_tokens(tokens);
+                        });
+                    }
+                    syn::MacroDelimiter::Brace(brace) => {
+                        brace.surround(&mut tokens, |tokens| {
+                            item.mac.tokens.to_tokens(tokens);
+                        });
+                    }
+                    syn::MacroDelimiter::Bracket(bracket) => {
+                        bracket.surround(&mut tokens, |tokens| {
+                            item.mac.tokens.to_tokens(tokens);
+                        });
+                    }
+                }
+                tokens
+            }
+            Item::Mod(item) => {
+                let (brace, items) = item
+                    .content
+                    .as_ref()
+                    .expect("file modules are rejected during parsing");
+                let mut tokens = TokenStream::new();
+                brace.surround(&mut tokens, |tokens| {
+                    for mod_item in items {
+                        mod_item.to_tokens(tokens);
+                    }
+                });
+                tokens
+            }
+        }
+    }
+
     pub fn span_content(&self) -> Span {
         match self {
             Item::Static(item) => item.expr.span(),
@@ -109,5 +177,10 @@ mod tests {
             Err(err) => assert!(err.to_string().contains("file modules")),
             Ok(_) => panic!("expected file module to be rejected"),
         }
+    }
+
+    #[test]
+    fn test_display_content_fn() {
+        assert_eq!(parse_item("fn foo() { 1 }").display_content(), "{ 1 }");
     }
 }

@@ -2,7 +2,7 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use speckle_syntax::{SourceRange, minified_content};
+use speckle_syntax::{Item, SourceRange};
 use syn::{Attribute, ImplItem, Meta, TraitItem, spanned::Spanned, visit::Visit};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -269,8 +269,9 @@ impl IdentifiedSpeckleVisitor<'_> {
             if let Some(identifier) = speckle_identifier(attr) {
                 let item_range = SourceRange::from(item_span.span());
                 let item_source = &self.source[item_range.byte_start..item_range.byte_end];
-                let source_text = minified_content(item_source)
+                let item = syn::parse_str::<Item>(item_source)
                     .expect("item source should parse after successful file parse");
+                let source_text = item.display_content();
                 self.found.push(IdentifiedSpeckleItem {
                     identifier,
                     item_range,
