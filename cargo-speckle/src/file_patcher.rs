@@ -2,7 +2,7 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use speckle_syntax::SourceRange;
+use speckle_syntax::{minified_content, SourceRange};
 use syn::{
     Attribute, ImplItem, Meta, TraitItem, spanned::Spanned, visit::Visit,
 };
@@ -16,6 +16,7 @@ pub struct BareSpeckleAttribute {
 pub struct IdentifiedSpeckleItem {
     pub identifier: String,
     pub item_range: SourceRange,
+    pub source_text: String,
 }
 
 pub struct FilePatcher {
@@ -71,7 +72,10 @@ impl FilePatcher {
 
     pub fn find_identified_speckle_items(&self, identifiers: &[String]) -> Vec<IdentifiedSpeckleItem> {
         let identifiers: std::collections::HashSet<_> = identifiers.iter().collect();
-        let mut visitor = IdentifiedSpeckleVisitor { found: Vec::new() };
+        let mut visitor = IdentifiedSpeckleVisitor {
+            source: &self.source,
+            found: Vec::new(),
+        };
         for item in &self.file.items {
             visitor.visit_item(item);
         }
@@ -253,17 +257,24 @@ impl Visit<'_> for BareSpeckleVisitor {
     }
 }
 
-struct IdentifiedSpeckleVisitor {
+struct IdentifiedSpeckleVisitor<'source> {
+    source: &'source str,
     found: Vec<IdentifiedSpeckleItem>,
 }
 
-impl IdentifiedSpeckleVisitor {
+impl IdentifiedSpeckleVisitor<'_> {
     fn check_item(&mut self, attrs: &[Attribute], item_span: impl Spanned) {
         for attr in attrs {
             if let Some(identifier) = speckle_identifier(attr) {
+                let item_range = SourceRange::from(item_span.span());
+                let item_source =
+                    &self.source[item_range.byte_start..item_range.byte_end];
+                let source_text = minified_content(item_source)
+                    .expect("item source should parse after successful file parse");
                 self.found.push(IdentifiedSpeckleItem {
                     identifier,
-                    item_range: SourceRange::from(item_span.span()),
+                    item_range,
+                    source_text,
                 });
                 return;
             }
@@ -271,7 +282,7 @@ impl IdentifiedSpeckleVisitor {
     }
 }
 
-impl Visit<'_> for IdentifiedSpeckleVisitor {
+impl Visit<'_> for IdentifiedSpeckleVisitor<'_> {
     fn visit_item_fn(&mut self, node: &syn::ItemFn) {
         self.check_item(&node.attrs, node.span());
     }

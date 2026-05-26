@@ -15,6 +15,8 @@ pub enum SyntaxError {
     MissingSpeckleAttribute,
     #[error("invalid #[speckle] attribute: {0}")]
     SpeckleAttribute(#[from] SpeckleAttributeError),
+    #[error("failed to parse item: {0}")]
+    Parse(String),
 }
 
 pub enum Item {

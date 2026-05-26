@@ -78,7 +78,7 @@ impl SpeckleDb {
         id_speckle: i64,
     ) -> Result<Vec<Specification>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, id_speckle, id_source_range FROM specification WHERE id_speckle = ?1 ORDER BY id",
+            "SELECT id, id_speckle, id_source_range, source_text FROM specification WHERE id_speckle = ?1 ORDER BY id",
         )?;
         let specifications = stmt
             .query_map([id_speckle], Specification::from_row)?
@@ -198,7 +198,7 @@ impl SpeckleDbSession<'_> {
         specification: NewSpecification,
     ) -> Result<Specification, DbError> {
         self.tx.execute(
-            "INSERT INTO specification (id_speckle, id_source_range) VALUES (?1, ?2)",
+            "INSERT INTO specification (id_speckle, id_source_range, source_text) VALUES (?1, ?2, ?3)",
             specification.into_params(),
         )?;
         let id = self.tx.last_insert_rowid();
@@ -265,7 +265,7 @@ impl SpeckleDbSession<'_> {
     fn get_specification_by_id(&self, id: i64) -> Result<Specification, DbError> {
         self.tx
             .query_row(
-                "SELECT id, id_speckle, id_source_range FROM specification WHERE id = ?1",
+                "SELECT id, id_speckle, id_source_range, source_text FROM specification WHERE id = ?1",
                 [id],
                 |row| Specification::from_row(row),
             )
@@ -339,6 +339,7 @@ mod tests {
         let specification = tx.insert_specification(NewSpecification {
             id_speckle: speckle.id,
             id_source_range: source_range.id,
+            source_text: "{}".to_string(),
         })?;
 
         let job = tx.insert_implementation_job(NewImplementationJob {

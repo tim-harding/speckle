@@ -71,6 +71,7 @@ pub struct Specification {
     pub id: i64,
     pub id_speckle: i64,
     pub id_source_range: i64,
+    pub source_text: String,
 }
 
 impl Specification {
@@ -79,6 +80,7 @@ impl Specification {
             id: row.get(0)?,
             id_speckle: row.get(1)?,
             id_source_range: row.get(2)?,
+            source_text: row.get(3)?,
         })
     }
 }
@@ -87,11 +89,12 @@ impl Specification {
 pub struct NewSpecification {
     pub id_speckle: i64,
     pub id_source_range: i64,
+    pub source_text: String,
 }
 
 impl NewSpecification {
-    pub(crate) fn into_params(self) -> (i64, i64) {
-        (self.id_speckle, self.id_source_range)
+    pub(crate) fn into_params(self) -> (i64, i64, String) {
+        (self.id_speckle, self.id_source_range, self.source_text)
     }
 }
 

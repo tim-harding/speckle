@@ -148,6 +148,7 @@ fn init_ids_with_db(
             tx.insert_specification(NewSpecification {
                 id_speckle: speckle.id,
                 id_source_range: source_range.id,
+                source_text: item.source_text,
             })?;
         }
     }

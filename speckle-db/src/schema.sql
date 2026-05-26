@@ -22,7 +22,10 @@ CREATE TABLE IF NOT EXISTS specification (
     -- The speckle this revision belongs to.
     id_speckle INTEGER NOT NULL,
     -- The source location of the annotated item.
-    id_source_range INTEGER NOT NULL
+    id_source_range INTEGER NOT NULL,
+    -- The minified text of the annotated item.
+    -- Used to compare revisions to see if it has changed.
+    source_text TEXT NOT NULL
 );
 
 -- To look up all specifications for a given speckle.
