@@ -1,7 +1,9 @@
 use std::path::Path;
+use std::process::ExitCode;
 
 use uuid::Uuid;
 
+use crate::cli::InitIdsArgs;
 use crate::file_patcher::FilePatcher;
 use crate::sources::find_rust_sources;
 
@@ -10,7 +12,30 @@ pub struct InitIdsSummary {
     pub files: usize,
 }
 
-pub fn run(path: &Path) -> Result<InitIdsSummary, Box<dyn std::error::Error>> {
+pub fn execute(args: InitIdsArgs) -> ExitCode {
+    match run(&args.path) {
+        Ok(summary) => {
+            if summary.attributes == 0 {
+                println!("no bare #[speckle] attributes found");
+            } else {
+                println!(
+                    "patched {} attribute{} in {} file{}",
+                    summary.attributes,
+                    if summary.attributes == 1 { "" } else { "s" },
+                    summary.files,
+                    if summary.files == 1 { "" } else { "s" },
+                );
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!("error: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+pub(crate) fn run(path: &Path) -> Result<InitIdsSummary, Box<dyn std::error::Error>> {
     if !path.exists() {
         return Err(format!("path not found: {}", path.display()).into());
     }

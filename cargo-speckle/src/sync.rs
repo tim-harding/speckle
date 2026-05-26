@@ -1,8 +1,10 @@
 use std::fs;
 use std::path::Path;
+use std::process::ExitCode;
 
 use speckle_db::{DEFAULT_PATH, NewSourceRange, NewSpecification, NewSpeckle, SpeckleDb};
 
+use crate::cli::SyncArgs;
 use crate::file_patcher::FilePatcher;
 use crate::git::require_clean_repo;
 use crate::sources::find_rust_sources;
@@ -12,7 +14,30 @@ pub struct SyncSummary {
     pub files: usize,
 }
 
-pub fn run(path: &Path) -> Result<SyncSummary, Box<dyn std::error::Error>> {
+pub fn execute(args: SyncArgs) -> ExitCode {
+    match run(&args.path) {
+        Ok(summary) => {
+            if summary.speckles == 0 {
+                println!("no identified #[speckle] attributes found");
+            } else {
+                println!(
+                    "registered {} speckle{} from {} file{}",
+                    summary.speckles,
+                    if summary.speckles == 1 { "" } else { "s" },
+                    summary.files,
+                    if summary.files == 1 { "" } else { "s" },
+                );
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!("error: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+pub(crate) fn run(path: &Path) -> Result<SyncSummary, Box<dyn std::error::Error>> {
     run_with_db(path, Path::new(DEFAULT_PATH))
 }
 
