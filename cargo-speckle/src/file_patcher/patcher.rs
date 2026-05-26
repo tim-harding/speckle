@@ -51,17 +51,6 @@ impl FilePatcher {
         identified_speckle_visitor::find_identified_speckle_items(&self.source, &self.file)
     }
 
-    pub fn find_identified_speckle_items(
-        &self,
-        identifiers: &[String],
-    ) -> Vec<IdentifiedSpeckleItem> {
-        let identifiers: std::collections::HashSet<_> = identifiers.iter().collect();
-        self.find_all_identified_speckle_items()
-            .into_iter()
-            .filter(|item| identifiers.contains(&item.identifier))
-            .collect()
-    }
-
     pub fn patch_bare_attributes(&mut self, uuids: &[String]) -> Result<usize, FilePatcherError> {
         let bare_attributes = self.find_bare_speckle_attributes();
         if bare_attributes.len() != uuids.len() {

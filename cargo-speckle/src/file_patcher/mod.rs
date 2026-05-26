@@ -47,6 +47,18 @@ mod tests {
         FilePatcher::from_source(Path::new("test.rs"), source.to_string()).unwrap()
     }
 
+    fn find_identified_speckle_items(
+        patcher: &FilePatcher,
+        identifiers: &[String],
+    ) -> Vec<IdentifiedSpeckleItem> {
+        let identifiers: std::collections::HashSet<_> = identifiers.iter().collect();
+        patcher
+            .find_all_identified_speckle_items()
+            .into_iter()
+            .filter(|item| identifiers.contains(&item.identifier))
+            .collect()
+    }
+
     fn patch(source: &str, uuids: &[&str]) -> String {
         let mut patcher = patcher_for(source);
         patcher
@@ -92,11 +104,14 @@ mod tests {
             ])
             .unwrap();
 
-        let items = patcher.find_identified_speckle_items(&[
-            EXAMPLE_ID.to_string(),
-            OTHER_ID.to_string(),
-            "cccccccc-dddd-eeee-ffff-000000000000".to_string(),
-        ]);
+        let items = find_identified_speckle_items(
+            &patcher,
+            &[
+                EXAMPLE_ID.to_string(),
+                OTHER_ID.to_string(),
+                "cccccccc-dddd-eeee-ffff-000000000000".to_string(),
+            ],
+        );
         assert_eq!(items.len(), 3);
         assert_eq!(items[0].identifier, EXAMPLE_ID);
         assert!(items[0].item_range.byte_end > items[0].item_range.byte_start);
