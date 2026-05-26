@@ -4,7 +4,7 @@ use rkyv::{Archive, Deserialize, Serialize};
 use rkyv::{access, deserialize, to_bytes};
 
 use crate::item::Item;
-use crate::speckle_attribute::SpeckleAttributeArgument;
+use crate::speckle_attribute::SpeckleAttributeKind;
 
 /// Supported Rust item kinds for a `#[speckle]`-annotated item.
 #[derive(Archive, Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
@@ -26,7 +26,8 @@ pub enum ItemKind {
 #[derive(Archive, Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 #[rkyv(derive(Debug, PartialEq))]
 pub enum SpeckleArgument {
-    Identifier(String),
+    Identified(String),
+    Unidentified,
 }
 
 /// Canonical zero-copy representation of a `#[speckle]`-annotated item.
@@ -59,11 +60,7 @@ impl StoredItem {
         let attribute = item.speckle_attribute()?;
         Ok(Self {
             kind: ItemKind::from(item),
-            speckle_arguments: attribute
-                .arguments
-                .into_iter()
-                .map(SpeckleArgument::from)
-                .collect(),
+            speckle_arguments: todo!(),
             content: item_content(item),
         })
     }
@@ -106,14 +103,14 @@ impl From<&Item> for ItemKind {
     }
 }
 
-impl From<SpeckleAttributeArgument> for SpeckleArgument {
-    fn from(argument: SpeckleAttributeArgument) -> Self {
-        match argument {
-            SpeckleAttributeArgument::Identifier(id) => SpeckleArgument::Identifier(id),
+impl From<SpeckleAttributeKind> for SpeckleArgument {
+    fn from(kind: SpeckleAttributeKind) -> Self {
+        match kind {
+            SpeckleAttributeKind::Identified(id) => SpeckleArgument::Identified(id),
+            SpeckleAttributeKind::Unidentified => SpeckleArgument::Unidentified,
         }
     }
 }
-
 fn item_content(item: &Item) -> String {
     match item {
         Item::Static(item) => item.expr.to_token_stream().to_string(),

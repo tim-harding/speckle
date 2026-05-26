@@ -31,7 +31,7 @@ impl SpeckleVisitor {
         let item_range = span.span();
         for attribute in attrs
             .iter()
-            .filter_map(|attr| SpeckleAttribute::parse(attr).ok())
+            .filter_map(|attr| SpeckleAttribute::parse(&attr.meta).ok())
         {
             self.sites.push(SpeckleSite {
                 attribute,

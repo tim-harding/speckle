@@ -93,6 +93,6 @@ impl Item {
             .iter()
             .find(|attr| attr.path().is_ident("speckle"))
             .ok_or(SyntaxError::MissingSpeckleAttribute)?;
-        Ok(SpeckleAttribute::parse(attr)?)
+        Ok(todo!())
     }
 }

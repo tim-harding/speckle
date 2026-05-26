@@ -13,7 +13,7 @@ pub fn find_bare_speckle_attributes(file: &syn::File) -> Vec<BareSpeckleAttribut
     visitor
         .into_sites()
         .into_iter()
-        .filter(|site| site.attribute.is_bare())
+        .filter(|site| site.attribute.kind.is_unidentified())
         .map(|site| BareSpeckleAttribute {
             range: site.attribute.span,
         })

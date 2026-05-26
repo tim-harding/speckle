@@ -1,82 +1,87 @@
 use proc_macro2::Span;
-use syn::{Attribute, LitStr, Meta, MetaList, spanned::Spanned};
+use syn::{Attribute, Lit::Str, LitStr, Meta, MetaList, MetaNameValue, spanned::Spanned};
 
 #[derive(Debug)]
 pub struct SpeckleAttribute {
     pub span: Span,
-    pub arguments: Vec<SpeckleAttributeArgument>,
+    pub kind: SpeckleAttributeKind,
 }
 
 impl SpeckleAttribute {
-    pub fn parse(attr: &Attribute) -> Result<Self, SpeckleAttributeError> {
-        if !attr.path().is_ident("speckle") {
-            return Err(SpeckleAttributeError::ExpectedSpeckleAttribute);
-        }
-
-        let arguments = match &attr.meta {
-            Meta::Path(_) => Vec::new(),
-            Meta::List(list) => parse_speckle_list(list)?,
-            Meta::NameValue(_) => {
-                return Err(SpeckleAttributeError::ExpectedSpeckleAttributeList);
-            }
-        };
-
-        Ok(Self {
-            span: attr.span(),
-            arguments,
+    pub fn parse(meta: &Meta) -> Result<Self, SpeckleParseError> {
+        let kind = SpeckleAttributeKind::parse(meta)?;
+        Ok(SpeckleAttribute {
+            span: meta.span(),
+            kind,
         })
     }
+}
 
-    pub fn is_bare(&self) -> bool {
-        self.arguments.is_empty()
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum SpeckleAttributeKind {
+    Unidentified,
+    Identified(String),
+}
+
+impl SpeckleAttributeKind {
+    pub fn parse(meta: &Meta) -> Result<Self, SpeckleParseError> {
+        match meta {
+            // bare `#[speckle]` attribute
+            Meta::Path(_) => Ok(SpeckleAttributeKind::Unidentified),
+            // `#[speckle("id-foo")]` attribute
+            Meta::List(list) => {
+                todo!()
+            }
+            // `#[speckle(id = "id-foo")]` attribute
+            Meta::NameValue(MetaNameValue {
+                path,
+                value,
+                eq_token,
+                ..
+            }) => Ok(SpeckleAttributeKind::Identified(todo!())),
+        }
+    }
+
+    /// ```rust
+    /// let identified   = SpeckleAttributeKind::Identified("id-foo");
+    /// let unidentified = SpeckleAttributeKind::Unidentified;
+    /// assert!(   identified.is_identified())
+    /// assert!(!unidentified.is_identified())
+    /// ```
+    pub fn is_identified(&self) -> bool {
+        matches!(self, SpeckleAttributeKind::Identified(_))
+    }
+
+    /// ```rust
+    /// let identified   = SpeckleAttributeKind::Identified("id-foo");
+    /// let unidentified = SpeckleAttributeKind::Unidentified;
+    /// assert!(!unidentified.is_identified  ())
+    /// assert!( unidentified.is_unidentified())
+    /// ```
+    pub fn is_unidentified(&self) -> bool {
+        matches!(self, SpeckleAttributeKind::Unidentified)
     }
 
     pub fn identifier(&self) -> Option<&str> {
-        match self.arguments.as_slice() {
-            [SpeckleAttributeArgument::Identifier(id)] => Some(id),
-            _ => None,
+        match self {
+            SpeckleAttributeKind::Identified(id) => Some(id),
+            SpeckleAttributeKind::Unidentified => None,
         }
     }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum SpeckleAttributeArgument {
-    Identifier(String),
-}
-
-fn parse_speckle_list(
-    list: &MetaList,
-) -> Result<Vec<SpeckleAttributeArgument>, SpeckleAttributeError> {
-    if let Ok(lit) = list.parse_args::<LitStr>() {
-        return Ok(vec![SpeckleAttributeArgument::Identifier(lit.value())]);
-    }
-
-    let mut arguments = Vec::new();
-    list.parse_nested_meta(|meta| {
-        if !meta.path.is_ident("identifier") {
-            return Err(meta.error("expected `identifier`"));
-        }
-        let value = meta
-            .value()?
-            .parse::<LitStr>()
-            .map_err(|err| meta.error(err))?;
-        if !arguments.is_empty() {
-            return Err(meta.error("duplicate argument"));
-        }
-        arguments.push(SpeckleAttributeArgument::Identifier(value.value()));
-        Ok(())
-    })
-    .map_err(|_| SpeckleAttributeError::DuplicateArgument)?;
-
-    Ok(arguments)
 }
 
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
-pub enum SpeckleAttributeError {
+pub enum SpeckleParseError {
     #[error("expected `speckle` attribute")]
     ExpectedSpeckleAttribute,
     #[error("expected `#[speckle]` or `#[speckle(...)]`")]
     ExpectedSpeckleAttributeList,
+}
+
+#[derive(thiserror::Error, Debug, PartialEq, Eq)]
+pub enum SpeckleAttributeError {
+    #[error(transparent)]
+    Parse(#[from] SpeckleParseError),
     #[error("expected `identifier`")]
     ExpectedIdentifier,
     #[error("duplicate argument")]
@@ -113,13 +118,7 @@ mod tests {
         SpeckleAttributeSnapshot {
             byte_start: range.start,
             byte_end: range.end,
-            arguments: attribute
-                .arguments
-                .into_iter()
-                .map(|argument| match argument {
-                    SpeckleAttributeArgument::Identifier(id) => id,
-                })
-                .collect(),
+            arguments: todo!(),
         }
     }
 

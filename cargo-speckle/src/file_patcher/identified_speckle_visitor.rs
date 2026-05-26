@@ -21,7 +21,7 @@ pub fn find_identified_speckle_items(source: &str, file: &syn::File) -> Vec<Iden
 }
 
 fn identified_item_from_site(source: &str, site: SpeckleSite) -> Option<IdentifiedSpeckleItem> {
-    let identifier = site.attribute.identifier()?.to_string();
+    let identifier = site.attribute.kind.identifier()?.to_string();
     let item_bytes = site.item_range.byte_range();
     let item_source = &source[item_bytes.start..item_bytes.end];
     let item = syn::parse_str::<Item>(item_source)
