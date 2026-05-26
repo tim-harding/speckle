@@ -1,6 +1,7 @@
 mod bare_speckle_visitor;
 mod identified_speckle_visitor;
 mod patcher;
+mod speckle_visitor;
 
 pub use bare_speckle_visitor::BareSpeckleAttribute;
 pub use identified_speckle_visitor::IdentifiedSpeckleItem;

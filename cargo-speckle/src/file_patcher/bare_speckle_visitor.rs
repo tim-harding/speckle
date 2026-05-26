@@ -1,5 +1,5 @@
 use speckle_syntax::SourceRange;
-use syn::{Attribute, ImplItem, Meta, TraitItem, spanned::Spanned, visit::Visit};
+use syn::{Attribute, ImplItem, Meta, spanned::Spanned, visit::Visit};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BareSpeckleAttribute {
@@ -7,7 +7,7 @@ pub struct BareSpeckleAttribute {
 }
 
 pub fn find_bare_speckle_attributes(file: &syn::File) -> Vec<BareSpeckleAttribute> {
-    let mut visitor = BareSpeckleVisitor { found: Vec::new() };
+    let mut visitor = BareSpeckleVisitor { found: vec![] };
     for item in &file.items {
         visitor.visit_item(item);
     }
@@ -53,11 +53,6 @@ impl Visit<'_> for BareSpeckleVisitor {
 
     fn visit_item_trait(&mut self, node: &syn::ItemTrait) {
         self.check_attrs(&node.attrs);
-        for item in &node.items {
-            if let TraitItem::Fn(method) = item {
-                self.check_attrs(&method.attrs);
-            }
-        }
     }
 
     fn visit_item_impl(&mut self, node: &syn::ItemImpl) {
