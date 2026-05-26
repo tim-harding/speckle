@@ -8,10 +8,7 @@ pub struct IdentifiedSpeckleItem {
     pub source_text: String,
 }
 
-pub fn find_identified_speckle_items(
-    source: &str,
-    file: &syn::File,
-) -> Vec<IdentifiedSpeckleItem> {
+pub fn find_identified_speckle_items(source: &str, file: &syn::File) -> Vec<IdentifiedSpeckleItem> {
     let mut visitor = IdentifiedSpeckleVisitor {
         source,
         found: Vec::new(),
