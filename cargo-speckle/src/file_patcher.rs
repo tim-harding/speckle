@@ -3,11 +3,19 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use speckle_syntax::SourceRange;
-use syn::{Attribute, Meta, spanned::Spanned, visit::Visit};
+use syn::{
+    Attribute, ImplItem, Meta, TraitItem, spanned::Spanned, visit::Visit,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BareSpeckleAttribute {
     pub range: SourceRange,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IdentifiedSpeckleItem {
+    pub identifier: String,
+    pub item_range: SourceRange,
 }
 
 pub struct FilePatcher {
@@ -55,8 +63,23 @@ impl FilePatcher {
 
     pub fn find_bare_speckle_attributes(&self) -> Vec<BareSpeckleAttribute> {
         let mut visitor = BareSpeckleVisitor { found: Vec::new() };
-        visitor.visit_file(&self.file);
+        for item in &self.file.items {
+            visitor.visit_item(item);
+        }
         visitor.found
+    }
+
+    pub fn find_identified_speckle_items(&self, identifiers: &[String]) -> Vec<IdentifiedSpeckleItem> {
+        let identifiers: std::collections::HashSet<_> = identifiers.iter().collect();
+        let mut visitor = IdentifiedSpeckleVisitor { found: Vec::new() };
+        for item in &self.file.items {
+            visitor.visit_item(item);
+        }
+        visitor
+            .found
+            .into_iter()
+            .filter(|item| identifiers.contains(&item.identifier))
+            .collect()
     }
 
     pub fn patch_bare_attributes(&mut self, uuids: &[String]) -> Result<usize, FilePatcherError> {
@@ -83,6 +106,11 @@ impl FilePatcher {
             self.source
                 .replace_range(range.byte_start..range.byte_end, &replacement);
         }
+
+        self.file = syn::parse_file(&self.source).map_err(|source| FilePatcherError::Parse {
+            path: self.path.clone(),
+            source,
+        })?;
 
         Ok(count)
     }
@@ -119,18 +147,184 @@ impl FilePatcher {
     }
 }
 
+fn is_bare_speckle(attr: &Attribute) -> bool {
+    attr.path().is_ident("speckle") && matches!(attr.meta, Meta::Path(_))
+}
+
+fn speckle_identifier(attr: &Attribute) -> Option<String> {
+    if !attr.path().is_ident("speckle") {
+        return None;
+    }
+
+    let list = match &attr.meta {
+        Meta::List(list) => list,
+        _ => return None,
+    };
+
+    if let Ok(lit) = list.parse_args::<syn::LitStr>() {
+        return Some(lit.value());
+    }
+
+    let mut identifier = None;
+    let _ = list.parse_nested_meta(|meta| {
+        if !meta.path.is_ident("identifier") {
+            return Err(meta.error("expected `identifier`"));
+        }
+        let value = meta
+            .value()?
+            .parse::<syn::LitStr>()
+            .map_err(|err| meta.error(err))?;
+        identifier = Some(value.value());
+        Ok(())
+    });
+    identifier
+}
+
 struct BareSpeckleVisitor {
     found: Vec<BareSpeckleAttribute>,
 }
 
-impl Visit<'_> for BareSpeckleVisitor {
-    fn visit_attribute(&mut self, attr: &Attribute) {
-        if attr.path().is_ident("speckle") && matches!(attr.meta, Meta::Path(_)) {
-            self.found.push(BareSpeckleAttribute {
-                range: SourceRange::from(attr.span()),
-            });
+impl BareSpeckleVisitor {
+    fn check_attrs(&mut self, attrs: &[Attribute]) {
+        for attr in attrs {
+            if is_bare_speckle(attr) {
+                self.found.push(BareSpeckleAttribute {
+                    range: SourceRange::from(attr.span()),
+                });
+            }
         }
-        syn::visit::visit_attribute(self, attr);
+    }
+}
+
+impl Visit<'_> for BareSpeckleVisitor {
+    fn visit_item_fn(&mut self, node: &syn::ItemFn) {
+        self.check_attrs(&node.attrs);
+    }
+
+    fn visit_item_struct(&mut self, node: &syn::ItemStruct) {
+        self.check_attrs(&node.attrs);
+    }
+
+    fn visit_item_enum(&mut self, node: &syn::ItemEnum) {
+        self.check_attrs(&node.attrs);
+    }
+
+    fn visit_item_union(&mut self, node: &syn::ItemUnion) {
+        self.check_attrs(&node.attrs);
+    }
+
+    fn visit_item_trait(&mut self, node: &syn::ItemTrait) {
+        self.check_attrs(&node.attrs);
+        for item in &node.items {
+            if let TraitItem::Fn(method) = item {
+                self.check_attrs(&method.attrs);
+            }
+        }
+    }
+
+    fn visit_item_impl(&mut self, node: &syn::ItemImpl) {
+        self.check_attrs(&node.attrs);
+        for item in &node.items {
+            if let ImplItem::Fn(method) = item {
+                self.check_attrs(&method.attrs);
+            }
+        }
+    }
+
+    fn visit_item_mod(&mut self, node: &syn::ItemMod) {
+        self.check_attrs(&node.attrs);
+        if let Some((_, items)) = &node.content {
+            for item in items {
+                self.visit_item(item);
+            }
+        }
+    }
+
+    fn visit_item_const(&mut self, node: &syn::ItemConst) {
+        self.check_attrs(&node.attrs);
+    }
+
+    fn visit_item_static(&mut self, node: &syn::ItemStatic) {
+        self.check_attrs(&node.attrs);
+    }
+
+    fn visit_item_macro(&mut self, node: &syn::ItemMacro) {
+        self.check_attrs(&node.attrs);
+    }
+}
+
+struct IdentifiedSpeckleVisitor {
+    found: Vec<IdentifiedSpeckleItem>,
+}
+
+impl IdentifiedSpeckleVisitor {
+    fn check_item(&mut self, attrs: &[Attribute], item_span: impl Spanned) {
+        for attr in attrs {
+            if let Some(identifier) = speckle_identifier(attr) {
+                self.found.push(IdentifiedSpeckleItem {
+                    identifier,
+                    item_range: SourceRange::from(item_span.span()),
+                });
+                return;
+            }
+        }
+    }
+}
+
+impl Visit<'_> for IdentifiedSpeckleVisitor {
+    fn visit_item_fn(&mut self, node: &syn::ItemFn) {
+        self.check_item(&node.attrs, node.span());
+    }
+
+    fn visit_item_struct(&mut self, node: &syn::ItemStruct) {
+        self.check_item(&node.attrs, node.span());
+    }
+
+    fn visit_item_enum(&mut self, node: &syn::ItemEnum) {
+        self.check_item(&node.attrs, node.span());
+    }
+
+    fn visit_item_union(&mut self, node: &syn::ItemUnion) {
+        self.check_item(&node.attrs, node.span());
+    }
+
+    fn visit_item_trait(&mut self, node: &syn::ItemTrait) {
+        self.check_item(&node.attrs, node.span());
+        for item in &node.items {
+            if let TraitItem::Fn(method) = item {
+                self.check_item(&method.attrs, method.span());
+            }
+        }
+    }
+
+    fn visit_item_impl(&mut self, node: &syn::ItemImpl) {
+        self.check_item(&node.attrs, node.span());
+        for item in &node.items {
+            if let ImplItem::Fn(method) = item {
+                self.check_item(&method.attrs, method.span());
+            }
+        }
+    }
+
+    fn visit_item_mod(&mut self, node: &syn::ItemMod) {
+        self.check_item(&node.attrs, node.span());
+        if let Some((_, items)) = &node.content {
+            for item in items {
+                self.visit_item(item);
+            }
+        }
+    }
+
+    fn visit_item_const(&mut self, node: &syn::ItemConst) {
+        self.check_item(&node.attrs, node.span());
+    }
+
+    fn visit_item_static(&mut self, node: &syn::ItemStatic) {
+        self.check_item(&node.attrs, node.span());
+    }
+
+    fn visit_item_macro(&mut self, node: &syn::ItemMacro) {
+        self.check_item(&node.attrs, node.span());
     }
 }
 
@@ -184,6 +378,36 @@ mod tests {
         assert_eq!(bare_attributes.len(), 1);
         assert_eq!(bare_attributes[0].range.byte_start, 0);
         assert_eq!(bare_attributes[0].range.byte_end, 10);
+    }
+
+    #[test]
+    fn test_find_identified_speckle_items_after_patch() {
+        let mut patcher = patcher_for(indoc! {"
+            #[speckle]
+            struct Foo;
+
+            #[speckle]
+            mod bar {
+                #[speckle]
+                fn baz() {}
+            }
+        "});
+        patcher
+            .patch_bare_attributes(&[
+                EXAMPLE_ID.to_string(),
+                OTHER_ID.to_string(),
+                "cccccccc-dddd-eeee-ffff-000000000000".to_string(),
+            ])
+            .unwrap();
+
+        let items = patcher.find_identified_speckle_items(&[
+            EXAMPLE_ID.to_string(),
+            OTHER_ID.to_string(),
+            "cccccccc-dddd-eeee-ffff-000000000000".to_string(),
+        ]);
+        assert_eq!(items.len(), 3);
+        assert_eq!(items[0].identifier, EXAMPLE_ID);
+        assert!(items[0].item_range.byte_end > items[0].item_range.byte_start);
     }
 
     #[test]

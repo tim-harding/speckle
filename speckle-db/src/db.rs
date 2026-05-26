@@ -9,7 +9,7 @@ use crate::model::{
     SourceRange, Specification, Speckle,
 };
 
-pub const DEFAULT_PATH: &str = ".speckle/speckle.db";
+pub const DEFAULT_PATH: &str = ".speckle/db.sqlite3";
 
 const SCHEMA: &str = include_str!("schema.sql");
 
