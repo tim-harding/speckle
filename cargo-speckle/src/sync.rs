@@ -83,11 +83,11 @@ pub(crate) fn run_with_db(
                 byte_start: item.item_range.byte_range().start as i64,
                 byte_end: item.item_range.byte_range().end as i64,
             })?;
-            tx.insert_specification(NewSpecification {
-                id_speckle: speckle.id,
-                id_source_range: source_range.id,
-                source_text: item.source_text,
-            })?;
+            tx.insert_specification(NewSpecification::from_stored_item(
+                speckle.id,
+                source_range.id,
+                &item.stored_item,
+            )?)?;
             speckles += 1;
         }
         files += 1;

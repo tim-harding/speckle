@@ -78,7 +78,7 @@ impl SpeckleDb {
         id_speckle: i64,
     ) -> Result<Vec<Specification>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, id_speckle, id_source_range, source_text FROM specification WHERE id_speckle = ?1 ORDER BY id",
+            "SELECT id, id_speckle, id_source_range, source_pod FROM specification WHERE id_speckle = ?1 ORDER BY id",
         )?;
         let specifications = stmt
             .query_map([id_speckle], Specification::from_row)?
@@ -117,7 +117,7 @@ impl SpeckleDb {
         id_specification: i64,
     ) -> Result<Vec<Implementation>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, id_specification, id_implementation_job, id_source_range, source_tokens FROM implementation WHERE id_specification = ?1",
+            "SELECT id, id_specification, id_implementation_job, id_source_range, source_pod FROM implementation WHERE id_specification = ?1",
         )?;
         let implementations = stmt
             .query_map([id_specification], Implementation::from_row)?
@@ -130,7 +130,7 @@ impl SpeckleDb {
         id_implementation_job: i64,
     ) -> Result<Vec<Implementation>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, id_specification, id_implementation_job, id_source_range, source_tokens FROM implementation WHERE id_implementation_job = ?1",
+            "SELECT id, id_specification, id_implementation_job, id_source_range, source_pod FROM implementation WHERE id_implementation_job = ?1",
         )?;
         let implementations = stmt
             .query_map([id_implementation_job], Implementation::from_row)?
@@ -198,7 +198,7 @@ impl SpeckleDbSession<'_> {
         specification: NewSpecification,
     ) -> Result<Specification, DbError> {
         self.tx.execute(
-            "INSERT INTO specification (id_speckle, id_source_range, source_text) VALUES (?1, ?2, ?3)",
+            "INSERT INTO specification (id_speckle, id_source_range, source_pod) VALUES (?1, ?2, ?3)",
             specification.into_params(),
         )?;
         let id = self.tx.last_insert_rowid();
@@ -223,7 +223,7 @@ impl SpeckleDbSession<'_> {
         implementation: NewImplementation,
     ) -> Result<Implementation, DbError> {
         self.tx.execute(
-            "INSERT INTO implementation (id_specification, id_implementation_job, id_source_range, source_tokens) VALUES (?1, ?2, ?3, ?4)",
+            "INSERT INTO implementation (id_specification, id_implementation_job, id_source_range, source_pod) VALUES (?1, ?2, ?3, ?4)",
             implementation.into_params(),
         )?;
         let id = self.tx.last_insert_rowid();
@@ -265,7 +265,7 @@ impl SpeckleDbSession<'_> {
     fn get_specification_by_id(&self, id: i64) -> Result<Specification, DbError> {
         self.tx
             .query_row(
-                "SELECT id, id_speckle, id_source_range, source_text FROM specification WHERE id = ?1",
+                "SELECT id, id_speckle, id_source_range, source_pod FROM specification WHERE id = ?1",
                 [id],
                 |row| Specification::from_row(row),
             )
@@ -285,7 +285,7 @@ impl SpeckleDbSession<'_> {
     fn get_implementation_by_id(&self, id: i64) -> Result<Implementation, DbError> {
         self.tx
             .query_row(
-                "SELECT id, id_specification, id_implementation_job, id_source_range, source_tokens FROM implementation WHERE id = ?1",
+                "SELECT id, id_specification, id_implementation_job, id_source_range, source_pod FROM implementation WHERE id = ?1",
                 [id],
                 |row| Implementation::from_row(row),
             )
@@ -318,6 +318,7 @@ fn map_not_found(error: rusqlite::Error) -> DbError {
 mod tests {
     use super::*;
     use crate::model::NewSourceRange;
+    use speckle_syntax::{ItemKind, StoredItem, StoredSpanContent};
 
     #[test]
     fn test_full_insert_lookup_flow() -> Result<(), DbError> {
@@ -336,23 +337,29 @@ mod tests {
             byte_end: 42,
         })?;
 
-        let specification = tx.insert_specification(NewSpecification {
-            id_speckle: speckle.id,
-            id_source_range: source_range.id,
-            source_text: "{}".to_string(),
-        })?;
+        let specification = tx.insert_specification(NewSpecification::from_stored_item(
+            speckle.id,
+            source_range.id,
+            &StoredItem {
+                kind: ItemKind::Fn,
+                speckle_arguments: Vec::new(),
+                content: "{}".to_string(),
+            },
+        )?)?;
 
         let job = tx.insert_implementation_job(NewImplementationJob {
             id_specification: specification.id,
             id_external: Some("agent-run-1".to_string()),
         })?;
 
-        let implementation = tx.insert_implementation(NewImplementation {
-            id_specification: specification.id,
-            id_implementation_job: Some(job.id),
-            id_source_range: source_range.id,
-            source_tokens: b"fn foo() {}".to_vec(),
-        })?;
+        let implementation = tx.insert_implementation(NewImplementation::from_stored_span_content(
+            specification.id,
+            Some(job.id),
+            source_range.id,
+            &StoredSpanContent {
+                content: "fn foo() {}".to_string(),
+            },
+        )?)?;
 
         let accepted = tx.insert_implementation_accepted(NewImplementationAccepted {
             id_speckle: speckle.id,

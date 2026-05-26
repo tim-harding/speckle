@@ -1,5 +1,5 @@
 use proc_macro2::Span;
-use speckle_syntax::Item;
+use speckle_syntax::{Item, StoredItem};
 
 use super::speckle_visitor::{SpeckleSite, SpeckleVisitor};
 
@@ -7,7 +7,7 @@ use super::speckle_visitor::{SpeckleSite, SpeckleVisitor};
 pub struct IdentifiedSpeckleItem {
     pub identifier: String,
     pub item_range: Span,
-    pub source_text: String,
+    pub stored_item: StoredItem,
 }
 
 pub fn find_identified_speckle_items(source: &str, file: &syn::File) -> Vec<IdentifiedSpeckleItem> {
@@ -26,9 +26,11 @@ fn identified_item_from_site(source: &str, site: SpeckleSite) -> Option<Identifi
     let item_source = &source[item_bytes.start..item_bytes.end];
     let item = syn::parse_str::<Item>(item_source)
         .expect("item source should parse after successful file parse");
+    let stored_item = StoredItem::from_item(&item)
+        .expect("item should have a valid #[speckle] attribute after site discovery");
     Some(IdentifiedSpeckleItem {
         identifier,
         item_range: site.item_range,
-        source_text: item.to_string(),
+        stored_item,
     })
 }

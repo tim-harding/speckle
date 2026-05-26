@@ -12,6 +12,7 @@ categories = ["parsing", "development-tools"]
 [dependencies]
 proc-macro2 = { version = "1.0.106", features = ["span-locations"] }
 quote = "1.0.44"
+rkyv = { version = "0.8.8", features = ["bytecheck"] }
 syn = { version = "2.0.117", features = ["full", "visit"] }
 thiserror = "2.0.18"
 

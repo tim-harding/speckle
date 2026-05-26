@@ -1,4 +1,5 @@
 use rusqlite::{Result as SqliteResult, Row};
+use speckle_syntax::{StoredItem, StoredSpanContent};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Speckle {
@@ -71,7 +72,7 @@ pub struct Specification {
     pub id: i64,
     pub id_speckle: i64,
     pub id_source_range: i64,
-    pub source_text: String,
+    pub source_pod: Vec<u8>,
 }
 
 impl Specification {
@@ -80,8 +81,12 @@ impl Specification {
             id: row.get(0)?,
             id_speckle: row.get(1)?,
             id_source_range: row.get(2)?,
-            source_text: row.get(3)?,
+            source_pod: row.get(3)?,
         })
+    }
+
+    pub fn stored_item(&self) -> Result<StoredItem, speckle_syntax::StoredArchiveError> {
+        StoredItem::from_bytes(&self.source_pod)
     }
 }
 
@@ -89,12 +94,24 @@ impl Specification {
 pub struct NewSpecification {
     pub id_speckle: i64,
     pub id_source_range: i64,
-    pub source_text: String,
+    pub source_pod: Vec<u8>,
 }
 
 impl NewSpecification {
-    pub(crate) fn into_params(self) -> (i64, i64, String) {
-        (self.id_speckle, self.id_source_range, self.source_text)
+    pub fn from_stored_item(
+        id_speckle: i64,
+        id_source_range: i64,
+        item: &StoredItem,
+    ) -> Result<Self, speckle_syntax::StoredArchiveError> {
+        Ok(Self {
+            id_speckle,
+            id_source_range,
+            source_pod: item.to_bytes()?,
+        })
+    }
+
+    pub(crate) fn into_params(self) -> (i64, i64, Vec<u8>) {
+        (self.id_speckle, self.id_source_range, self.source_pod)
     }
 }
 
@@ -133,7 +150,7 @@ pub struct Implementation {
     pub id_specification: i64,
     pub id_implementation_job: Option<i64>,
     pub id_source_range: i64,
-    pub source_tokens: Vec<u8>,
+    pub source_pod: Vec<u8>,
 }
 
 impl Implementation {
@@ -143,8 +160,14 @@ impl Implementation {
             id_specification: row.get(1)?,
             id_implementation_job: row.get(2)?,
             id_source_range: row.get(3)?,
-            source_tokens: row.get(4)?,
+            source_pod: row.get(4)?,
         })
+    }
+
+    pub fn stored_span_content(
+        &self,
+    ) -> Result<StoredSpanContent, speckle_syntax::StoredArchiveError> {
+        StoredSpanContent::from_bytes(&self.source_pod)
     }
 }
 
@@ -153,16 +176,30 @@ pub struct NewImplementation {
     pub id_specification: i64,
     pub id_implementation_job: Option<i64>,
     pub id_source_range: i64,
-    pub source_tokens: Vec<u8>,
+    pub source_pod: Vec<u8>,
 }
 
 impl NewImplementation {
+    pub fn from_stored_span_content(
+        id_specification: i64,
+        id_implementation_job: Option<i64>,
+        id_source_range: i64,
+        content: &StoredSpanContent,
+    ) -> Result<Self, speckle_syntax::StoredArchiveError> {
+        Ok(Self {
+            id_specification,
+            id_implementation_job,
+            id_source_range,
+            source_pod: content.to_bytes()?,
+        })
+    }
+
     pub(crate) fn into_params(self) -> (i64, Option<i64>, i64, Vec<u8>) {
         (
             self.id_specification,
             self.id_implementation_job,
             self.id_source_range,
-            self.source_tokens,
+            self.source_pod,
         )
     }
 }

@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS specification (
     id_speckle INTEGER NOT NULL,
     -- The source location of the annotated item.
     id_source_range INTEGER NOT NULL,
-    -- Canonical text of the annotated item.
+    -- rkyv archive of `speckle_syntax::StoredItem`.
     -- Used to compare revisions to see if it has changed.
-    source_text TEXT NOT NULL
+    source_pod BLOB NOT NULL
 );
 
 -- To look up all specifications for a given speckle.
@@ -60,12 +60,12 @@ CREATE TABLE IF NOT EXISTS implementation (
     id_implementation_job INTEGER,
     -- The source location of the implemented item.
     id_source_range INTEGER NOT NULL,
-    -- Text to substitute for the content span of the annotated item.
-    -- For example, the content of a function is its body.
-    -- This is inlined in zero-copy form 
-    -- rather than derived from the repository state
+    -- rkyv archive of `speckle_syntax::StoredSpanContent`.
+    -- Substituted for the content span of the annotated item
+    -- (for example, the body of a function).
+    -- Inlined rather than derived from repository state
     -- as a caching optimization for the proc macro.
-    source_tokens BLOB NOT NULL
+    source_pod BLOB NOT NULL
 );
 
 -- To look up all implementations for a given specification.
