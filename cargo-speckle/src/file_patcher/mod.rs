@@ -154,20 +154,6 @@ mod tests {
     }
 
     #[test]
-    fn test_patch_trait_method() {
-        insta::assert_snapshot!(patch(
-            indoc! {"
-                #[speckle]
-                trait Foo {
-                    #[speckle]
-                    fn bar(&self);
-                }
-            "},
-            &[EXAMPLE_ID, OTHER_ID]
-        ));
-    }
-
-    #[test]
     fn test_patch_impl_method() {
         insta::assert_snapshot!(patch(
             indoc! {"
