@@ -86,7 +86,7 @@ pub enum SpeckleAttributeError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Item, SourceRange, SyntaxError};
+    use crate::{Item, SyntaxError};
     use indoc::{formatdoc, indoc};
     use serde::Serialize;
     use syn::parse_str;
@@ -109,10 +109,10 @@ mod tests {
         let attribute = item
             .speckle_attribute()
             .expect("expected item to have a #[speckle] attribute");
-        let range = SourceRange::from(attribute.span);
+        let range = attribute.span.byte_range();
         SpeckleAttributeSnapshot {
-            byte_start: range.byte_start,
-            byte_end: range.byte_end,
+            byte_start: range.start,
+            byte_end: range.end,
             arguments: attribute
                 .arguments
                 .into_iter()

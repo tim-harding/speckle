@@ -2,7 +2,7 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use speckle_syntax::SourceRange;
+use proc_macro2::Span;
 
 use super::bare_speckle_visitor;
 use super::identified_speckle_visitor;
@@ -60,7 +60,7 @@ impl FilePatcher {
             });
         }
 
-        let mut replacements: Vec<(SourceRange, String)> = bare_attributes
+        let mut replacements: Vec<(Span, String)> = bare_attributes
             .into_iter()
             .zip(uuids.iter())
             .map(|(bare_attribute, uuid)| {
@@ -68,12 +68,19 @@ impl FilePatcher {
             })
             .collect();
 
-        replacements.sort_by(|left, right| right.0.byte_start.cmp(&left.0.byte_start));
+        replacements.sort_by(|left, right| {
+            right
+                .0
+                .byte_range()
+                .start
+                .cmp(&left.0.byte_range().start)
+        });
 
         let count = replacements.len();
         for (range, replacement) in replacements {
+            let bytes = range.byte_range();
             self.source
-                .replace_range(range.byte_start..range.byte_end, &replacement);
+                .replace_range(bytes.start..bytes.end, &replacement);
         }
 
         self.file = syn::parse_file(&self.source).map_err(|source| FilePatcherError::Parse {

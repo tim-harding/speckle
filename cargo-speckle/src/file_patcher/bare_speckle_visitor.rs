@@ -1,10 +1,10 @@
-use speckle_syntax::SourceRange;
+use proc_macro2::Span;
 
 use super::speckle_visitor::SpeckleVisitor;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct BareSpeckleAttribute {
-    pub range: SourceRange,
+    pub range: Span,
 }
 
 pub fn find_bare_speckle_attributes(file: &syn::File) -> Vec<BareSpeckleAttribute> {
@@ -15,7 +15,7 @@ pub fn find_bare_speckle_attributes(file: &syn::File) -> Vec<BareSpeckleAttribut
         .into_iter()
         .filter(|site| site.attribute.is_bare())
         .map(|site| BareSpeckleAttribute {
-            range: SourceRange::from(site.attribute.span),
+            range: site.attribute.span,
         })
         .collect()
 }

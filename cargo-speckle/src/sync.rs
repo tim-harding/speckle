@@ -80,8 +80,8 @@ pub(crate) fn run_with_db(
             let source_range = tx.insert_source_range(NewSourceRange {
                 commit_hash: git.head.clone(),
                 file_path: rel_path.clone(),
-                byte_start: item.item_range.byte_start as i64,
-                byte_end: item.item_range.byte_end as i64,
+                byte_start: item.item_range.byte_range().start as i64,
+                byte_end: item.item_range.byte_range().end as i64,
             })?;
             tx.insert_specification(NewSpecification {
                 id_speckle: speckle.id,

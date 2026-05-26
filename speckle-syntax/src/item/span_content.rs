@@ -48,7 +48,6 @@ impl fmt::Display for Item {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::SourceRange;
     use serde::Serialize;
     use syn::parse_str;
 
@@ -65,11 +64,11 @@ mod tests {
 
     fn snapshot_span_content(source: &str) -> SpanContentSnapshot {
         let item = parse_item(source);
-        let range = SourceRange::from(item.span_content());
+        let range = item.span_content().byte_range();
         SpanContentSnapshot {
-            byte_start: range.byte_start,
-            byte_end: range.byte_end,
-            content: source[range.byte_start..range.byte_end].to_string(),
+            byte_start: range.start,
+            byte_end: range.end,
+            content: source[range.start..range.end].to_string(),
         }
     }
 

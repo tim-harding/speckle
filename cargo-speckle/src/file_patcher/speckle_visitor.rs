@@ -1,10 +1,11 @@
-use speckle_syntax::{SourceRange, SpeckleAttribute};
+use proc_macro2::Span;
+use speckle_syntax::SpeckleAttribute;
 use syn::spanned::Spanned;
 use syn::{Attribute, visit::Visit};
 
 pub struct SpeckleSite {
     pub attribute: SpeckleAttribute,
-    pub item_range: SourceRange,
+    pub item_range: Span,
 }
 
 pub struct SpeckleVisitor {
@@ -27,7 +28,7 @@ impl SpeckleVisitor {
     }
 
     fn push_speckle_attrs(&mut self, attrs: &[Attribute], span: impl Spanned) {
-        let item_range = SourceRange::from(span.span());
+        let item_range = span.span();
         for attribute in attrs.iter().filter_map(|attr| SpeckleAttribute::parse(attr).ok()) {
             self.sites.push(SpeckleSite {
                 attribute,

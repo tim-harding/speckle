@@ -80,8 +80,8 @@ mod tests {
         "});
         let bare_attributes = patcher.find_bare_speckle_attributes();
         assert_eq!(bare_attributes.len(), 1);
-        assert_eq!(bare_attributes[0].range.byte_start, 0);
-        assert_eq!(bare_attributes[0].range.byte_end, 10);
+        assert_eq!(bare_attributes[0].range.byte_range().start, 0);
+        assert_eq!(bare_attributes[0].range.byte_range().end, 10);
     }
 
     #[test]
@@ -114,7 +114,8 @@ mod tests {
         );
         assert_eq!(items.len(), 3);
         assert_eq!(items[0].identifier, EXAMPLE_ID);
-        assert!(items[0].item_range.byte_end > items[0].item_range.byte_start);
+        let item_bytes = items[0].item_range.byte_range();
+        assert!(item_bytes.end > item_bytes.start);
     }
 
     #[test]
