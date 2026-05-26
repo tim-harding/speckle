@@ -128,6 +128,7 @@ impl NewImplementationJob {
 pub struct Implementation {
     pub id: i64,
     pub id_specification: i64,
+    pub id_implementation_job: Option<i64>,
     pub id_source_range: i64,
     pub source_tokens: Vec<u8>,
 }
@@ -137,8 +138,9 @@ impl Implementation {
         Ok(Self {
             id: row.get(0)?,
             id_specification: row.get(1)?,
-            id_source_range: row.get(2)?,
-            source_tokens: row.get(3)?,
+            id_implementation_job: row.get(2)?,
+            id_source_range: row.get(3)?,
+            source_tokens: row.get(4)?,
         })
     }
 }
@@ -146,14 +148,16 @@ impl Implementation {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NewImplementation {
     pub id_specification: i64,
+    pub id_implementation_job: Option<i64>,
     pub id_source_range: i64,
     pub source_tokens: Vec<u8>,
 }
 
 impl NewImplementation {
-    pub(crate) fn into_params(self) -> (i64, i64, Vec<u8>) {
+    pub(crate) fn into_params(self) -> (i64, Option<i64>, i64, Vec<u8>) {
         (
             self.id_specification,
+            self.id_implementation_job,
             self.id_source_range,
             self.source_tokens,
         )

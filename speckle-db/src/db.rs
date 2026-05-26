@@ -117,10 +117,23 @@ impl SpeckleDb {
         id_specification: i64,
     ) -> Result<Vec<Implementation>, DbError> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, id_specification, id_source_range, source_tokens FROM implementation WHERE id_specification = ?1",
+            "SELECT id, id_specification, id_implementation_job, id_source_range, source_tokens FROM implementation WHERE id_specification = ?1",
         )?;
         let implementations = stmt
             .query_map([id_specification], Implementation::from_row)?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(implementations)
+    }
+
+    pub fn list_implementations_for_implementation_job(
+        &self,
+        id_implementation_job: i64,
+    ) -> Result<Vec<Implementation>, DbError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, id_specification, id_implementation_job, id_source_range, source_tokens FROM implementation WHERE id_implementation_job = ?1",
+        )?;
+        let implementations = stmt
+            .query_map([id_implementation_job], Implementation::from_row)?
             .collect::<Result<Vec<_>, _>>()?;
         Ok(implementations)
     }
@@ -210,7 +223,7 @@ impl SpeckleDbSession<'_> {
         implementation: NewImplementation,
     ) -> Result<Implementation, DbError> {
         self.tx.execute(
-            "INSERT INTO implementation (id_specification, id_source_range, source_tokens) VALUES (?1, ?2, ?3)",
+            "INSERT INTO implementation (id_specification, id_implementation_job, id_source_range, source_tokens) VALUES (?1, ?2, ?3, ?4)",
             implementation.into_params(),
         )?;
         let id = self.tx.last_insert_rowid();
@@ -272,7 +285,7 @@ impl SpeckleDbSession<'_> {
     fn get_implementation_by_id(&self, id: i64) -> Result<Implementation, DbError> {
         self.tx
             .query_row(
-                "SELECT id, id_specification, id_source_range, source_tokens FROM implementation WHERE id = ?1",
+                "SELECT id, id_specification, id_implementation_job, id_source_range, source_tokens FROM implementation WHERE id = ?1",
                 [id],
                 |row| Implementation::from_row(row),
             )
@@ -335,6 +348,7 @@ mod tests {
 
         let implementation = tx.insert_implementation(NewImplementation {
             id_specification: specification.id,
+            id_implementation_job: Some(job.id),
             id_source_range: source_range.id,
             source_tokens: b"fn foo() {}".to_vec(),
         })?;
@@ -361,6 +375,10 @@ mod tests {
         assert_eq!(db.get_implementation_job_by_external("agent-run-1")?, job);
         assert_eq!(
             db.list_implementations_for_specification(specification.id)?,
+            vec![implementation.clone()]
+        );
+        assert_eq!(
+            db.list_implementations_for_implementation_job(job.id)?,
             vec![implementation.clone()]
         );
         assert_eq!(

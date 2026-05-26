@@ -52,6 +52,9 @@ CREATE TABLE IF NOT EXISTS implementation (
     id INTEGER PRIMARY KEY,
     -- The specification that was implemented.
     id_specification INTEGER NOT NULL,
+    -- The job that implemented the specification.
+    -- Optional in case, for example, it was implemented by hand.
+    id_implementation_job INTEGER,
     -- The source location of the implemented item.
     id_source_range INTEGER NOT NULL,
     -- Text to substitute for the content span of the annotated item.
@@ -64,6 +67,8 @@ CREATE TABLE IF NOT EXISTS implementation (
 
 -- To look up all implementations for a given specification.
 CREATE INDEX IF NOT EXISTS idx_implementation_id_specification ON implementation (id_specification);
+-- To look up the implementation produced by a given job.
+CREATE INDEX IF NOT EXISTS idx_implementation_id_implementation_job ON implementation (id_implementation_job);
 
 -- A record of the accepted implementation of a specification
 -- that the macro will substitute for the annotated item.
