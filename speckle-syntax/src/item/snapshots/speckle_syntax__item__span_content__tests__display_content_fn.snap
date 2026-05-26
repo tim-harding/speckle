@@ -1,0 +1,5 @@
+---
+source: speckle-syntax/src/item/span_content.rs
+expression: "parse_item(\"fn foo() {   1 }\").to_string()"
+---
+"fn foo () { 1 }"

@@ -271,7 +271,7 @@ impl IdentifiedSpeckleVisitor<'_> {
                 let item_source = &self.source[item_range.byte_start..item_range.byte_end];
                 let item = syn::parse_str::<Item>(item_source)
                     .expect("item source should parse after successful file parse");
-                let source_text = item.display_content();
+                let source_text = item.to_string();
                 self.found.push(IdentifiedSpeckleItem {
                     identifier,
                     item_range,
