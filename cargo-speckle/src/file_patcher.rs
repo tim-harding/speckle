@@ -68,11 +68,7 @@ impl FilePatcher {
         visitor.found
     }
 
-    pub fn find_identified_speckle_items(
-        &self,
-        identifiers: &[String],
-    ) -> Vec<IdentifiedSpeckleItem> {
-        let identifiers: std::collections::HashSet<_> = identifiers.iter().collect();
+    pub fn find_all_identified_speckle_items(&self) -> Vec<IdentifiedSpeckleItem> {
         let mut visitor = IdentifiedSpeckleVisitor {
             source: &self.source,
             found: Vec::new(),
@@ -80,8 +76,15 @@ impl FilePatcher {
         for item in &self.file.items {
             visitor.visit_item(item);
         }
-        visitor
-            .found
+        visitor.found
+    }
+
+    pub fn find_identified_speckle_items(
+        &self,
+        identifiers: &[String],
+    ) -> Vec<IdentifiedSpeckleItem> {
+        let identifiers: std::collections::HashSet<_> = identifiers.iter().collect();
+        self.find_all_identified_speckle_items()
             .into_iter()
             .filter(|item| identifiers.contains(&item.identifier))
             .collect()

@@ -27,6 +27,8 @@ struct Cli {
 enum Command {
     /// Assign UUIDs to bare `#[speckle]` attributes
     InitIds(InitIdsArgs),
+    /// Register identified `#[speckle]` attributes in the database
+    Sync(SyncArgs),
 }
 
 #[derive(Parser)]
@@ -36,10 +38,11 @@ struct InitIdsArgs {
     path: PathBuf,
 }
 
-struct PendingPatch {
+#[derive(Parser)]
+struct SyncArgs {
+    /// Directory to search for Rust source files
+    #[arg(default_value = "src")]
     path: PathBuf,
-    patcher: FilePatcher,
-    uuids: Vec<String>,
 }
 
 fn main() -> ExitCode {
@@ -64,6 +67,26 @@ fn main() -> ExitCode {
                 ExitCode::FAILURE
             }
         },
+        Command::Sync(args) => match sync(&args.path) {
+            Ok(summary) => {
+                if summary.speckles == 0 {
+                    println!("no identified #[speckle] attributes found");
+                } else {
+                    println!(
+                        "registered {} speckle{} from {} file{}",
+                        summary.speckles,
+                        if summary.speckles == 1 { "" } else { "s" },
+                        summary.files,
+                        if summary.files == 1 { "" } else { "s" },
+                    );
+                }
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                eprintln!("error: {error}");
+                ExitCode::FAILURE
+            }
+        },
     }
 }
 
@@ -72,20 +95,16 @@ struct InitIdsSummary {
     files: usize,
 }
 
-fn init_ids(path: &Path) -> Result<InitIdsSummary, Box<dyn std::error::Error>> {
-    init_ids_with_db(path, Path::new(DEFAULT_PATH))
+struct SyncSummary {
+    speckles: usize,
+    files: usize,
 }
 
-fn init_ids_with_db(
-    path: &Path,
-    db_path: &Path,
-) -> Result<InitIdsSummary, Box<dyn std::error::Error>> {
+fn init_ids(path: &Path) -> Result<InitIdsSummary, Box<dyn std::error::Error>> {
     if !path.exists() {
         return Err(format!("path not found: {}", path.display()).into());
     }
 
-    let git = require_clean_repo(path)?;
-    let mut pending = Vec::new();
     let mut attributes = 0;
     let mut files = 0;
 
@@ -99,22 +118,29 @@ fn init_ids_with_db(
         let uuids = (0..bare_attributes.len())
             .map(|_| Uuid::new_v4().to_string())
             .collect::<Vec<_>>();
-        let patched = patcher.patch_bare_attributes(&uuids)?;
-        attributes += patched;
+        attributes += patcher.patch_bare_attributes(&uuids)?;
+        patcher.save()?;
         files += 1;
-        pending.push(PendingPatch {
-            path: source_path,
-            patcher,
-            uuids,
-        });
     }
 
-    if pending.is_empty() {
-        return Ok(InitIdsSummary {
-            attributes: 0,
-            files: 0,
-        });
+    Ok(InitIdsSummary { attributes, files })
+}
+
+fn sync(path: &Path) -> Result<SyncSummary, Box<dyn std::error::Error>> {
+    sync_with_db(path, Path::new(DEFAULT_PATH))
+}
+
+fn sync_with_db(
+    path: &Path,
+    db_path: &Path,
+) -> Result<SyncSummary, Box<dyn std::error::Error>> {
+    if !path.exists() {
+        return Err(format!("path not found: {}", path.display()).into());
     }
+
+    let git = require_clean_repo(path)?;
+    let mut speckles = 0;
+    let mut files = 0;
 
     if let Some(parent) = db_path.parent() {
         fs::create_dir_all(parent)?;
@@ -123,13 +149,18 @@ fn init_ids_with_db(
     db.migrate()?;
     let mut tx = db.transaction()?;
 
-    for entry in &pending {
-        let abs_path = fs::canonicalize(&entry.path)?;
+    for source_path in find_rust_sources(path) {
+        let patcher = FilePatcher::open(&source_path)?;
+        let items = patcher.find_all_identified_speckle_items();
+        if items.is_empty() {
+            continue;
+        }
+
+        let abs_path = fs::canonicalize(&source_path)?;
         let rel_path = abs_path
             .strip_prefix(&git.toplevel)?
             .to_string_lossy()
             .into_owned();
-        let items = entry.patcher.find_identified_speckle_items(&entry.uuids);
 
         for item in items {
             let speckle = tx.insert_speckle(NewSpeckle {
@@ -146,15 +177,14 @@ fn init_ids_with_db(
                 id_source_range: source_range.id,
                 source_text: item.source_text,
             })?;
+            speckles += 1;
         }
+        files += 1;
     }
 
-    for entry in pending {
-        entry.patcher.save()?;
-    }
     tx.commit()?;
 
-    Ok(InitIdsSummary { attributes, files })
+    Ok(SyncSummary { speckles, files })
 }
 
 fn find_rust_sources(path: &Path) -> Vec<PathBuf> {
@@ -204,7 +234,7 @@ mod tests {
     }
 
     #[test]
-    fn test_init_ids_registers_speckles_in_db() {
+    fn test_init_ids_patches_without_clean_repo() {
         let temp_dir = tempfile::tempdir().unwrap();
         init_repo_with_commit(temp_dir.path());
         fs::write(
@@ -218,6 +248,31 @@ mod tests {
             "},
         )
         .unwrap();
+
+        let summary = init_ids(&temp_dir.path().join("src")).unwrap();
+        assert_eq!(summary.attributes, 2);
+        assert_eq!(summary.files, 1);
+
+        let written = fs::read_to_string(temp_dir.path().join("src/lib.rs")).unwrap();
+        assert!(written.contains("#[speckle(\""));
+    }
+
+    #[test]
+    fn test_sync_registers_speckles_in_db() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        init_repo_with_commit(temp_dir.path());
+        fs::write(
+            temp_dir.path().join("src/lib.rs"),
+            indoc! {"
+                #[speckle]
+                struct Foo;
+
+                #[speckle]
+                fn bar() {}
+            "},
+        )
+        .unwrap();
+        init_ids(&temp_dir.path().join("src")).unwrap();
         Command::new("git")
             .args(["add", "src/lib.rs"])
             .current_dir(temp_dir.path())
@@ -234,14 +289,11 @@ mod tests {
             .expect("git commit");
 
         let db_path = temp_dir.path().join(".speckle/db.sqlite3");
-        let summary = init_ids_with_db(&temp_dir.path().join("src"), &db_path).unwrap();
-        assert_eq!(summary.attributes, 2);
+        let summary = sync_with_db(&temp_dir.path().join("src"), &db_path).unwrap();
+        assert_eq!(summary.speckles, 2);
         assert_eq!(summary.files, 1);
 
         let db = SpeckleDb::open(&db_path).unwrap();
-        let written = fs::read_to_string(temp_dir.path().join("src/lib.rs")).unwrap();
-        assert!(written.contains("#[speckle(\""));
-
         let speckles = (0..2)
             .map(|id| db.get_speckle_by_id(id + 1).unwrap())
             .collect::<Vec<_>>();

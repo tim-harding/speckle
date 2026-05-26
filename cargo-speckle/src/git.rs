@@ -14,7 +14,7 @@ pub enum GitError {
     BareRepository,
     #[error("no commits yet")]
     NoCommits,
-    #[error("working tree has uncommitted changes; commit or stash before running init-ids")]
+    #[error("working tree has uncommitted changes; commit or stash before running sync")]
     UncommittedChanges,
     #[error("{0}")]
     Gix(String),
