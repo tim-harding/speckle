@@ -2,48 +2,18 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use speckle_db::{DEFAULT_PATH, NewSourceRange, NewSpecification, NewSpeckle, SpeckleDb};
 use uuid::Uuid;
 use walkdir::{DirEntry, WalkDir};
 
+mod cli;
 mod file_patcher;
 mod git;
 
+use cli::{Cli, Command};
 use file_patcher::FilePatcher;
 use git::require_clean_repo;
-
-#[derive(Parser)]
-#[command(
-    name = "cargo-speckle",
-    about = "Manage Speckle attributes in Rust source files"
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Command,
-}
-
-#[derive(Subcommand)]
-enum Command {
-    /// Assign UUIDs to bare `#[speckle]` attributes
-    InitIds(InitIdsArgs),
-    /// Register identified `#[speckle]` attributes in the database
-    Sync(SyncArgs),
-}
-
-#[derive(Parser)]
-struct InitIdsArgs {
-    /// Directory to search for Rust source files
-    #[arg(default_value = "src")]
-    path: PathBuf,
-}
-
-#[derive(Parser)]
-struct SyncArgs {
-    /// Directory to search for Rust source files
-    #[arg(default_value = "src")]
-    path: PathBuf,
-}
 
 fn main() -> ExitCode {
     match Cli::parse().command {
